@@ -11,7 +11,7 @@ int main()
     // freopen("test.in","r",stdin);
     // freopen("test.out","w",stdout);
     ifstream f("tree");
-    Tree.initialize("tree","data",true);
+    Tree.initialize("tree","data",!f.good());
     f.close();
     cin>>n;
     while(n--)
