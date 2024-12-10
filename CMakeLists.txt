@@ -3,6 +3,6 @@ project(bookstore)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(bookstore
+add_executable(code
         database.h
         main.cpp)
