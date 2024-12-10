@@ -103,7 +103,7 @@ class Node
 {
 public:
     T key[MAXN]{};
-    int son[MAXN]={-1};
+    int son[MAXN]{-1};
     int fa=-1;
     Node(){memset(son,-1,sizeof(son));}
 };
@@ -113,19 +113,18 @@ class list
 {
 public:
     T val;
-    int nxt{};
+    int nxt=-2;
     list()=default;
     list(const T &a,const int &b):val(a),nxt(b){}
 };
 
 template<class T>
-int COUNT_OF(const Node<T> &a)
+int COUNT_OF(const Node<T> &a,bool op=false)
 {
     for(int i=0;i<MAXN;i++)
         if(a.son[i]==-1)
             return i;
-    std::cerr<<"COUNT_OF error!"<<std::endl;
-    exit(0);
+    return MAXN;
 }
 
 template<class T,class T0>
@@ -136,29 +135,31 @@ class B_plus_Tree
     void split(const int &index,Node<T> left)
     {
         Node<T> right;
-        for(int i=MAXN/2;i<MAXN;i++)
+        for(int i=MAXN/2+1;i<MAXN;i++)
         {
-            strcpy(right.key[i-MAXN/2],left.key[i]),left.key[i][0]='\0';
+            strcpy(right.key[i-MAXN/2],left.key[i]);
             right.son[i-MAXN/2]=left.son[i],left.son[i]=-1;
         }
+        right.son[0]=left.son[MAXN/2];left.son[MAXN/2]=-1;
         right.fa=left.fa;
         node_file.update(left,index);
         const int index_r=node_file.write(right);
         if(left.fa==-1)
         {
             Node<T> new_root;
-            strcpy(new_root.key[1],right.key[1]);
-            new_root.son[0]=index,new_root.son[0]=index_r;
+            strcpy(new_root.key[1],left.key[MAXN/2]);
+            new_root.son[0]=index,new_root.son[1]=index_r;
             left.fa=right.fa=node_file.write(new_root);
             node_file.update(left,index);
             node_file.update(right,index_r);
             const int depth=node_file.get_info(4)+1;
+            node_file.write_info(left.fa,3);
             node_file.write_info(depth,4);
         }
         else
         {
             Node<T> fa=node_file.read(left.fa);
-            const int cnt=COUNT_OF(fa)-1;
+            const int cnt=COUNT_OF(fa);
             int pos=0;
             for(int i=0;i<cnt;i++)
                 if(fa.son[i]==index)
@@ -168,7 +169,7 @@ class B_plus_Tree
                 }
             for(int i=cnt-1;i>=pos;--i)
                 strcpy(fa.key[i+1],fa.key[i]),fa.son[i+1]=fa.son[i];
-            strcpy(fa.key[pos],right.key[1]),fa.son[pos]=index_r;
+            strcpy(fa.key[pos],left.key[MAXN/2]),fa.son[pos]=index_r;
             if(cnt+1>=MAXN)
                 split(left.fa,fa);
             else
@@ -188,13 +189,12 @@ public:
         int now=node_file.get_info(3),depth=node_file.get_info(4);
         if(!depth)
         {
-            Node<T> a;list<T0> b(val,-1);
+            Node<T> a;list<T0> b(val,-2);
             strcpy(a.key[0],key);
             a.son[0]=data_file.write(b);
-            const int x=node_file.write(a);
-            constexpr int one=1;
-            node_file.write_info(x,3);
-            node_file.write_info(one,4);
+            node_file.write_info(node_file.write(a),3);
+            ++depth;
+            node_file.write_info(depth,4);
             return ;
         }
         while(depth!=1)
@@ -203,13 +203,7 @@ public:
             const auto tmp=node_file.read(now);
             for(int i=1;i<=MAXN;i++)
             {
-                if(i==MAXN)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-                const int len=static_cast<int>(strlen(tmp.key[i]));
-                if(!len)
+                if(i==MAXN||tmp.son[i]==-1)
                 {
                     now=tmp.son[i-1];
                     break;
@@ -222,7 +216,7 @@ public:
             }
         }
         auto tmp=node_file.read(now);
-        const auto cnt=COUNT_OF(tmp);
+        const auto cnt=COUNT_OF(tmp,true);
         int pos=cnt;
         for(int i=0;i<cnt;i++)
         {
@@ -231,10 +225,9 @@ public:
             const int ok=strcmp(tmp.key[i],key);
             if(ok==0)
             {
-                list<T0> x1=data_file.read(tmp.son[i]);
-                list<T0> x2(val,x1.nxt);
-                x1.nxt=data_file.write(x2);
-                data_file.update(x1,tmp.son[i]);
+                list<T0> x2(val,tmp.son[i]);
+                tmp.son[i]=data_file.write(x2);
+                node_file.update(tmp,now);
                 return ;
             }
             if(ok>0)
@@ -245,10 +238,51 @@ public:
         }
         for(int i=cnt-1;i>=pos;--i)
             strcpy(tmp.key[i+1],tmp.key[i]),tmp.son[i+1]=tmp.son[i];
-        list<T0> x(val,-1);
+        list<T0> x(val,-2);
         strcpy(tmp.key[pos],key),tmp.son[pos]=data_file.write(x);
         if(cnt+1>=MAXN)
-            split(now,tmp);
+        {
+            Node<T> right;
+            for(int i=MAXN/2;i<MAXN;i++)
+            {
+                strcpy(right.key[i-MAXN/2],tmp.key[i]);
+                right.son[i-MAXN/2]=tmp.son[i],tmp.son[i]=-1;
+            }
+            right.fa=tmp.fa;
+            node_file.update(tmp,now);
+            const int index_r=node_file.write(right);
+            if(tmp.fa==-1)
+            {
+                Node<T> new_root;
+                strcpy(new_root.key[1],right.key[0]);
+                new_root.son[0]=now,new_root.son[1]=index_r;
+                tmp.fa=right.fa=node_file.write(new_root);
+                node_file.update(tmp,now);
+                node_file.update(right,index_r);
+                ++depth;
+                node_file.write_info(tmp.fa,3);
+                node_file.write_info(depth,4);
+            }
+            else
+            {
+                Node<T> fa=node_file.read(tmp.fa);
+                const int cnt1=COUNT_OF(fa);
+                int pos1=0;
+                for(int i=0;i<cnt1;i++)
+                    if(fa.son[i]==now)
+                    {
+                        pos1=i+1;
+                        break;
+                    }
+                for(int i=cnt1-1;i>=pos1;--i)
+                    strcpy(fa.key[i+1],fa.key[i]),fa.son[i+1]=fa.son[i];
+                strcpy(fa.key[pos1],right.key[1]),fa.son[pos1]=index_r;
+                if(cnt1+1>=MAXN)
+                    split(tmp.fa,fa);
+                else
+                    node_file.update(fa,tmp.fa);
+            }
+        }
         else
             node_file.update(tmp,now);
     }
@@ -263,13 +297,7 @@ public:
             const auto tmp=node_file.read(now);
             for(int i=1;i<=MAXN;i++)
             {
-                if(i==MAXN)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-                const int len=static_cast<int>(strlen(tmp.key[i]));
-                if(!len)
+                if(i==MAXN||tmp.son[i]==-1)
                 {
                     now=tmp.son[i-1];
                     break;
@@ -286,13 +314,11 @@ public:
         std::vector<T0> val;
         for(int i=0;i<cnt;i++)
         {
-            if(tmp.son[i]==-1)
-                return {};
             const int ok=strcmp(tmp.key[i],key);
             if(ok==0)
             {
                 int ptr=tmp.son[i];
-                while(ptr!=-1)
+                while(ptr>=0)
                 {
                     list<T0> p;
                     data_file.read(p,ptr);
@@ -318,13 +344,7 @@ public:
             const auto tmp=node_file.read(now);
             for(int i=1;i<=MAXN;i++)
             {
-                if(i==MAXN)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-                const int len=static_cast<int>(strlen(tmp.key[i]));
-                if(!len)
+                if(i==MAXN||tmp.son[i]==-1)
                 {
                     now=tmp.son[i-1];
                     break;
@@ -340,14 +360,12 @@ public:
         const auto cnt=COUNT_OF(tmp);
         for(int i=0;i<cnt;i++)
         {
-            if(tmp.son[i]==-1)
-                return ;
             const int ok=strcmp(tmp.key[i],key);
             if(ok==0)
             {
                 int ptr=tmp.son[i],las_ptr=-1;
                 list<T0> las,p;
-                while(ptr!=-1)
+                while(ptr>=0)
                 {
                     las=p;
                     data_file.read(p,ptr);

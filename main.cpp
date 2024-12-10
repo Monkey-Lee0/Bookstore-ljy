@@ -8,8 +8,10 @@ name key;
 int value;
 int main()
 {
+    // freopen("test.in","r",stdin);
+    // freopen("test.out","w",stdout);
     ifstream f("tree");
-    Tree.initialize("tree","data",!f.good());
+    Tree.initialize("tree","data",true);
     f.close();
     cin>>n;
     while(n--)
