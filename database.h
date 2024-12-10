@@ -276,7 +276,7 @@ public:
                     }
                 for(int i=cnt1-1;i>=pos1;--i)
                     strcpy(fa.key[i+1],fa.key[i]),fa.son[i+1]=fa.son[i];
-                strcpy(fa.key[pos1],right.key[1]),fa.son[pos1]=index_r;
+                strcpy(fa.key[pos1],right.key[0]),fa.son[pos1]=index_r;
                 if(cnt1+1>=MAXN)
                     split(tmp.fa,fa);
                 else
