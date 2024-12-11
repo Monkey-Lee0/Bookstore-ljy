@@ -8,6 +8,7 @@ name key;
 int value;
 int main()
 {
+    ios::sync_with_stdio(false);
     // freopen("test.in","r",stdin);
     // freopen("test.out","w",stdout);
     ifstream f("tree");
