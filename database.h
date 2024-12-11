@@ -407,7 +407,7 @@ public:
                 for(auto [t,val]:p)
                     if(t<0&&S.contains(val))
                         S.erase(val);
-                    else
+                    else if(t>0)
                         S.insert(val);
                 std::vector<int> res;
                 for(auto t:S)
