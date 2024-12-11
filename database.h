@@ -95,7 +95,7 @@ public:
     }
 };
 
-constexpr int MAXN=8;
+constexpr int MAXN=16;
 using name=char[65];
 
 template<class T>
