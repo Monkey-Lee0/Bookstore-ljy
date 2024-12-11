@@ -10,7 +10,6 @@ class MemoryRiver
 private:
     std::fstream file;
     std::string file_name;
-    int sizeofT=sizeof(T);
 public:
     MemoryRiver()=default;
     explicit MemoryRiver(std::string file_name):file_name(std::move(file_name)){}
@@ -19,8 +18,9 @@ public:
         if(!FN.empty())
             file_name=FN;
         file.open(file_name,std::ios::out);
-        int tmp=0;
-        for(int i=0;i<info_len;++i)
+        int tmp=0,initial=info_len*sizeof(int);
+        file.write(reinterpret_cast<char *>(&initial),sizeof(int));
+        for(int i=1;i<info_len;++i)
             file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
         file.close();
     }
@@ -45,54 +45,30 @@ public:
     }
     int write(T &t)
     {
-        int index,p;
-        get_info(p,2);
-        if(!p)
-        {
-            get_info(index,1);
-            index++;
-            write_info(index,1);
-        }
-        else
-        {
-            index=p;
-            file.open(file_name);
-            file.seekg(info_len*sizeof(int)+(index-1)*sizeofT);
-            file.read(reinterpret_cast<char*>(&p),sizeof(int));
-            file.close();
-            write_info(p,2);
-        }
+        int index=get_info(1)+sizeof(T);
+        write_info(index,1);
+        index-=sizeof(T);
         file.open(file_name);
-        file.seekp(info_len*sizeof(int)+(index-1)*sizeofT);
-        file.write(reinterpret_cast<char*>(&t),sizeofT);
+        file.seekp(index);
+        file.write(reinterpret_cast<char*>(&t),sizeof(T));
         file.close();
         return index;
     }
     void update(T &t,const int index)
     {
         file.open(file_name);
-        file.seekp(info_len*sizeof(int)+(index-1)*sizeofT);
-        file.write(reinterpret_cast<char*>(&t),sizeofT);
+        file.seekp(index);
+        file.write(reinterpret_cast<char*>(&t),sizeof(T));
         file.close();
     }
     void read(T &t,const int index)
     {
         file.open(file_name);
-        file.seekg(info_len*sizeof(int)+(index-1)*sizeofT);
-        file.read(reinterpret_cast<char*>(&t),sizeofT);
+        file.seekg(index);
+        file.read(reinterpret_cast<char*>(&t),sizeof(T));
         file.close();
     }
     T read(const int index){T tmp;read(tmp,index);return tmp;}
-    void Delete(const int index)
-    {
-        int p;
-        get_info(p,2);
-        file.open(file_name);
-        file.seekp(info_len*sizeof(int)+(index-1)*sizeofT);
-        file.write(reinterpret_cast<char*>(&p),sizeof(int));
-        file.close();
-        write_info(index,2);
-    }
 };
 
 constexpr int MAXN=16;
@@ -108,14 +84,94 @@ public:
     Node(){memset(son,-1,sizeof(son));}
 };
 
+constexpr int MAXM=16;
+
 template<class T>
 class list
 {
 public:
-    T val[MAXN];
-    int nxt=-2,cnt=0;
+    std::vector<std::pair<int,T>> val;
+    int cnt=0,ms=8;
     list()=default;
-    list(const T &a,const int &b):nxt(b){val[0]=a,cnt=1;}
+    explicit list(const int tim,const T& a)
+    {
+        val.resize(8);
+        val[cnt++]=std::make_pair(tim,a);
+    }
+};
+
+template<class T,int info_len=2>
+class DATA_rd
+{
+    std::fstream file;
+    std::string file_name;
+    public:
+    DATA_rd()=default;
+    explicit DATA_rd(std::string file_name):file_name(std::move(file_name)){}
+    void initialize(const std::string& FN="")
+    {
+        if(!FN.empty())
+            file_name=FN;
+        file.open(file_name,std::ios::out);
+        int tmp=0,initial=info_len*sizeof(int);
+        file.write(reinterpret_cast<char *>(&initial),sizeof(int));
+        for(int i=1;i<info_len;++i)
+            file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
+        file.close();
+    }
+    void get_info(int &tmp,const int n)
+    {
+        if(n>info_len)
+            return;
+        file.open(file_name);
+        file.seekg((n-1)*static_cast<int>(sizeof(int)));
+        file.read(reinterpret_cast<char*>(&tmp),sizeof(int));
+        file.close();
+    }
+    int get_info(const int n){int tmp;get_info(tmp,n);return tmp;}
+    void write_info(int tmp,const int n)
+    {
+        if (n>info_len)
+            return;
+        file.open(file_name);
+        file.seekp((n-1)*static_cast<int>(sizeof(int)));
+        file.write(reinterpret_cast<char*>(&tmp),sizeof(int));
+        file.close();
+    }
+    int write(list<T> &t)
+    {
+        int index=get_info(1);
+        index+=2*sizeof(int)+sizeof(std::pair<int,T>)*t.ms;
+        write_info(index,1);
+        index-=2*sizeof(int)+sizeof(std::pair<int,T>)*t.ms;
+        file.open(file_name);
+        file.seekp(index);
+        file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
+        file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
+        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
+        file.close();
+        return index;
+    }
+    void update(list<T> &t,const int index)
+    {
+        file.open(file_name);
+        file.seekp(index);
+        file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
+        file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
+        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
+        file.close();
+    }
+    void read(list<T> &t,const int index)
+    {
+        file.open(file_name);
+        file.seekg(index);
+        file.read(reinterpret_cast<char*>(&t.cnt),sizeof(int));
+        file.read(reinterpret_cast<char*>(&t.ms),sizeof(int));
+        t.val.resize(t.ms);
+        file.read(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
+        file.close();
+    }
+    list<T> read(const int index){list<T> tmp;read(tmp,index);return tmp;}
 };
 
 template<class T>
@@ -131,7 +187,7 @@ template<class T,class T0>
 class B_plus_Tree
 {
     MemoryRiver<Node<T>> node_file;
-    MemoryRiver<list<T0>> data_file;
+    DATA_rd<T0> data_file;
     void split(const int &index,Node<T> left)
     {
         Node<T> right;
@@ -183,19 +239,20 @@ class B_plus_Tree
         }
     }
 public:
-    void initialize(const std::string& s1,const std::string &s2,int mode=true)
+    void initialize(const std::string& s1,const std::string &s2,const int mode=true)
     {
         if(mode)
             node_file.initialize(s1),data_file.initialize(s2);
         else
-            node_file=MemoryRiver<Node<T>>(s1),data_file=MemoryRiver<list<T0>>(s2);
+            node_file=MemoryRiver<Node<T>>(s1),data_file=DATA_rd<T0>(s2);
     }
     void Insert(const T key,const T0 val)
     {
-        int now=node_file.get_info(3),depth=node_file.get_info(4);
+        int time=node_file.get_info(2),now=node_file.get_info(3),depth=node_file.get_info(4);
+        ++time;node_file.write_info(time,2);
         if(!depth)
         {
-            Node<T> a;list<T0> b(val,-2);
+            Node<T> a;list<T0> b(time,val);
             strcpy(a.key[0],key);
             a.son[0]=data_file.write(b);
             node_file.write_info(node_file.write(a),3);
@@ -231,15 +288,23 @@ public:
             {
                 if(tmp.son[i]>=0)
                 {
-                    if(auto X=data_file.read(tmp.son[i]); X.cnt!=MAXN)
+                    if(list<T0> X=data_file.read(tmp.son[i]); X.cnt<X.ms)
                     {
-                        X.val[X.cnt++]=val;
+                        X.val[X.cnt++]=std::make_pair(time,val);
                         data_file.update(X,tmp.son[i]);
-                        return ;
                     }
+                    else
+                    {
+                        X.ms<<=1;
+                        X.val.resize(X.ms);
+                        X.val[X.cnt++]=std::make_pair(time,val);
+                        tmp.son[i]=data_file.write(X);
+                        node_file.update(tmp,now);
+                    }
+                    return ;
                 }
-                list<T0> x2(val,tmp.son[i]);
-                tmp.son[i]=data_file.write(x2);
+                list<T0> X(time,val);
+                tmp.son[i]=data_file.write(X);
                 node_file.update(tmp,now);
                 return ;
             }
@@ -251,8 +316,8 @@ public:
         }
         for(int i=cnt-1;i>=pos;--i)
             strcpy(tmp.key[i+1],tmp.key[i]),tmp.son[i+1]=tmp.son[i];
-        list<T0> x(val,-2);
-        strcpy(tmp.key[pos],key),tmp.son[pos]=data_file.write(x);
+        list<T0> X(time,val);
+        strcpy(tmp.key[pos],key),tmp.son[pos]=data_file.write(X);
         if(cnt+1>=MAXN)
         {
             Node<T> right;
@@ -330,17 +395,29 @@ public:
             const int ok=strcmp(tmp.key[i],key);
             if(ok==0)
             {
-                int ptr=tmp.son[i];
-                while(ptr>=0)
-                {
-                    list<T0> p;
-                    data_file.read(p,ptr);
-                    for(int j=0;j<p.cnt;j++)
-                       val.push_back(p.val[j]);
-                    ptr=p.nxt;
-                }
-                sort(val.begin(),val.end());
-                return val;
+                if(tmp.son[i]<0)
+                    return {};
+                std::vector<std::pair<int,T0>> p;
+                auto X=data_file.read(tmp.son[i]);
+                for(int j=0;j<X.cnt;j++)
+                    p.push_back(X.val[j]);
+                std::sort(p.begin(),p.end(),[&](const std::pair<int,T0> &a,const std::pair<int,T0> &b)
+                {return std::abs(a.first)<std::abs(b.first);});
+                std::set<T0> S;
+                for(auto [t,val]:p)
+                    if(t<0&&S.contains(val))
+                        S.erase(val);
+                    else
+                        S.insert(val);
+                std::vector<int> res;
+                for(auto t:S)
+                    res.push_back(t);
+                int time=node_file.get_info(2);
+                X.cnt=0;
+                for(auto t:S)
+                    X.val[X.cnt++]=std::make_pair(time,t);
+                data_file.update(X,tmp.son[i]);
+                return res;
             }
             if(ok>0)
                 return{};
@@ -349,7 +426,8 @@ public:
     }
     void Delete(const T key,const T0 val)
     {
-        int now=node_file.get_info(3),depth=node_file.get_info(4);
+        int time=node_file.get_info(2),now=node_file.get_info(3),depth=node_file.get_info(4);
+        ++time;node_file.write_info(time,2);
         if(!depth)
             return ;
         while(depth!=1)
@@ -375,41 +453,23 @@ public:
         for(int i=0;i<cnt;i++)
         {
             const int ok=strcmp(tmp.key[i],key);
-            if(ok==0)
+            if(ok==0&&tmp.son[i]>=0)
             {
-                int ptr=tmp.son[i],las_ptr=-1;
-                list<T0> las,p;
-                while(ptr>=0)
+                if(list<T0> X=data_file.read(tmp.son[i]); X.cnt<X.ms)
                 {
-                    las=p;
-                    data_file.read(p,ptr);
-                    for(int j=0;j<p.cnt;j++)
-                        if(p.val[j]==val)
-                        {
-                            for(int k=j;k<p.cnt;k++)
-                                p.val[k]=p.val[k+1];
-                            --p.cnt;
-                            if(p.cnt)
-                                return data_file.update(p,ptr),void();
-                            data_file.Delete(ptr);
-                            if(las_ptr==-1)
-                            {
-                                tmp.son[i]=p.nxt;
-                                node_file.update(tmp,now);
-                            }
-                            else
-                            {
-                                las.nxt=p.nxt;
-                                data_file.update(las,las_ptr);
-                            }
-                            return ;
-                        }
-                    las_ptr=ptr;
-                    ptr=p.nxt;
+                    X.val[X.cnt++]=std::make_pair(-time,val);
+                    data_file.update(X,tmp.son[i]);
                 }
-                return ;
+                else
+                {
+                    X.ms<<=1;
+                    X.val.resize(X.ms);
+                    X.val[X.cnt++]=std::make_pair(-time,val);
+                    tmp.son[i]=data_file.write(X);
+                    node_file.update(tmp,now);
+                }
             }
-            if(ok>0)
+            if(ok>=0)
                 return ;
         }
     }
