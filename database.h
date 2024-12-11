@@ -399,11 +399,11 @@ public:
                 std::vector<std::pair<int,T0>> p;
                 auto X=data_file.read(tmp.son[i]);
                 std::set<T0> S;
-                for(auto [t,val]:X.val)
-                    if(t<0&&S.contains(val))
-                        S.erase(val);
-                    else if(t>0)
-                        S.insert(val);
+                for(int j=0;j<X.cnt;j++)
+                    if(X.val[j].first<0&&S.contains(X.val[j].second))
+                        S.erase(X.val[j].second);
+                    else if(X.val[j].first>0)
+                        S.insert(X.val[j].second);
                 std::vector<int> res;
                 for(auto t:S)
                     res.push_back(t);
