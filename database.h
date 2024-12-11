@@ -144,6 +144,12 @@ class B_plus_Tree
         right.fa=left.fa;
         node_file.update(left,index);
         const int index_r=node_file.write(right);
+        for(int i=0;i<MAXN/2;i++)
+        {
+            auto p=node_file.read(right.son[i]);
+            p.fa=index_r;
+            node_file.update(p,right.son[i]);
+        }
         if(left.fa==-1)
         {
             Node<T> new_root;
@@ -216,12 +222,10 @@ public:
             }
         }
         auto tmp=node_file.read(now);
-        const auto cnt=COUNT_OF(tmp,true);
+        const auto cnt=COUNT_OF(tmp);
         int pos=cnt;
         for(int i=0;i<cnt;i++)
         {
-            if(tmp.son[i]==-1)
-                break;
             const int ok=strcmp(tmp.key[i],key);
             if(ok==0)
             {
@@ -259,9 +263,9 @@ public:
                 tmp.fa=right.fa=node_file.write(new_root);
                 node_file.update(tmp,now);
                 node_file.update(right,index_r);
-                ++depth;
+                const int Depth=node_file.get_info(4)+1;
                 node_file.write_info(tmp.fa,3);
-                node_file.write_info(depth,4);
+                node_file.write_info(Depth,4);
             }
             else
             {
