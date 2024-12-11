@@ -248,11 +248,10 @@ public:
     }
     void Insert(const T key,const T0 val)
     {
-        int time=node_file.get_info(2),now=node_file.get_info(3),depth=node_file.get_info(4);
-        ++time;node_file.write_info(time,2);
+        int now=node_file.get_info(3),depth=node_file.get_info(4);
         if(!depth)
         {
-            Node<T> a;list<T0> b(time,val);
+            Node<T> a;list<T0> b(1,val);
             strcpy(a.key[0],key);
             a.son[0]=data_file.write(b);
             node_file.write_info(node_file.write(a),3);
@@ -290,20 +289,20 @@ public:
                 {
                     if(list<T0> X=data_file.read(tmp.son[i]); X.cnt<X.ms)
                     {
-                        X.val[X.cnt++]=std::make_pair(time,val);
+                        X.val[X.cnt++]=std::make_pair(1,val);
                         data_file.update(X,tmp.son[i]);
                     }
                     else
                     {
                         X.ms<<=1;
                         X.val.resize(X.ms);
-                        X.val[X.cnt++]=std::make_pair(time,val);
+                        X.val[X.cnt++]=std::make_pair(1,val);
                         tmp.son[i]=data_file.write(X);
                         node_file.update(tmp,now);
                     }
                     return ;
                 }
-                list<T0> X(time,val);
+                list<T0> X(1,val);
                 tmp.son[i]=data_file.write(X);
                 node_file.update(tmp,now);
                 return ;
@@ -316,7 +315,7 @@ public:
         }
         for(int i=cnt-1;i>=pos;--i)
             strcpy(tmp.key[i+1],tmp.key[i]),tmp.son[i+1]=tmp.son[i];
-        list<T0> X(time,val);
+        list<T0> X(1,val);
         strcpy(tmp.key[pos],key),tmp.son[pos]=data_file.write(X);
         if(cnt+1>=MAXN)
         {
@@ -399,12 +398,8 @@ public:
                     return {};
                 std::vector<std::pair<int,T0>> p;
                 auto X=data_file.read(tmp.son[i]);
-                for(int j=0;j<X.cnt;j++)
-                    p.push_back(X.val[j]);
-                std::sort(p.begin(),p.end(),[&](const std::pair<int,T0> &a,const std::pair<int,T0> &b)
-                {return std::abs(a.first)<std::abs(b.first);});
                 std::set<T0> S;
-                for(auto [t,val]:p)
+                for(auto [t,val]:X.val)
                     if(t<0&&S.contains(val))
                         S.erase(val);
                     else if(t>0)
@@ -412,10 +407,9 @@ public:
                 std::vector<int> res;
                 for(auto t:S)
                     res.push_back(t);
-                int time=node_file.get_info(2);
                 X.cnt=0;
                 for(auto t:S)
-                    X.val[X.cnt++]=std::make_pair(time,t);
+                    X.val[X.cnt++]=std::make_pair(1,t);
                 data_file.update(X,tmp.son[i]);
                 return res;
             }
@@ -426,8 +420,7 @@ public:
     }
     void Delete(const T key,const T0 val)
     {
-        int time=node_file.get_info(2),now=node_file.get_info(3),depth=node_file.get_info(4);
-        ++time;node_file.write_info(time,2);
+        int now=node_file.get_info(3),depth=node_file.get_info(4);
         if(!depth)
             return ;
         while(depth!=1)
@@ -457,14 +450,14 @@ public:
             {
                 if(list<T0> X=data_file.read(tmp.son[i]); X.cnt<X.ms)
                 {
-                    X.val[X.cnt++]=std::make_pair(-time,val);
+                    X.val[X.cnt++]=std::make_pair(-1,val);
                     data_file.update(X,tmp.son[i]);
                 }
                 else
                 {
                     X.ms<<=1;
                     X.val.resize(X.ms);
-                    X.val[X.cnt++]=std::make_pair(-time,val);
+                    X.val[X.cnt++]=std::make_pair(-1,val);
                     tmp.son[i]=data_file.write(X);
                     node_file.update(tmp,now);
                 }
