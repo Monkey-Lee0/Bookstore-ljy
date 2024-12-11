@@ -112,10 +112,10 @@ template<class T>
 class list
 {
 public:
-    T val;
-    int nxt=-2;
+    T val[MAXN];
+    int nxt=-2,cnt=0;
     list()=default;
-    list(const T &a,const int &b):val(a),nxt(b){}
+    list(const T &a,const int &b):nxt(b){val[0]=a,cnt=1;}
 };
 
 template<class T>
@@ -229,6 +229,15 @@ public:
             const int ok=strcmp(tmp.key[i],key);
             if(ok==0)
             {
+                if(tmp.son[i]>=0)
+                {
+                    if(auto X=data_file.read(tmp.son[i]); X.cnt!=MAXN)
+                    {
+                        X.val[X.cnt++]=val;
+                        data_file.update(X,tmp.son[i]);
+                        return ;
+                    }
+                }
                 list<T0> x2(val,tmp.son[i]);
                 tmp.son[i]=data_file.write(x2);
                 node_file.update(tmp,now);
@@ -326,7 +335,8 @@ public:
                 {
                     list<T0> p;
                     data_file.read(p,ptr);
-                    val.push_back(p.val);
+                    for(int j=0;j<p.cnt;j++)
+                       val.push_back(p.val[j]);
                     ptr=p.nxt;
                 }
                 sort(val.begin(),val.end());
@@ -373,21 +383,27 @@ public:
                 {
                     las=p;
                     data_file.read(p,ptr);
-                    if(p.val==val)
-                    {
-                        data_file.Delete(ptr);
-                        if(las_ptr==-1)
+                    for(int j=0;j<p.cnt;j++)
+                        if(p.val[j]==val)
                         {
-                            tmp.son[i]=p.nxt;
-                            node_file.update(tmp,now);
+                            for(int k=j;k<p.cnt;k++)
+                                p.val[k]=p.val[k+1];
+                            --p.cnt;
+                            if(p.cnt)
+                                return data_file.update(p,ptr),void();
+                            data_file.Delete(ptr);
+                            if(las_ptr==-1)
+                            {
+                                tmp.son[i]=p.nxt;
+                                node_file.update(tmp,now);
+                            }
+                            else
+                            {
+                                las.nxt=p.nxt;
+                                data_file.update(las,las_ptr);
+                            }
+                            return ;
                         }
-                        else
-                        {
-                            las.nxt=p.nxt;
-                            data_file.update(las,las_ptr);
-                        }
-                        return ;
-                    }
                     las_ptr=ptr;
                     ptr=p.nxt;
                 }
