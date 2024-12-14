@@ -84,18 +84,16 @@ public:
     Node(){memset(son,-1,sizeof(son));}
 };
 
-constexpr int MAXM=16;
-
 template<class T>
 class list
 {
 public:
     std::vector<std::pair<int,T>> val;
-    int cnt=0,ms=8;
+    int cnt=0,ms=1;
     list()=default;
     explicit list(const int tim,const T& a)
     {
-        val.resize(8);
+        val.resize(1);
         val[cnt++]=std::make_pair(tim,a);
     }
 };
