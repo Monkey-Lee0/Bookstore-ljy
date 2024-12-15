@@ -7,66 +7,55 @@
 template<class T,int info_len=4>
 class MemoryRiver
 {
-private:
+public:
     std::fstream file;
     std::string file_name;
-public:
     MemoryRiver()=default;
     explicit MemoryRiver(std::string file_name):file_name(std::move(file_name)){}
+    ~MemoryRiver(){file.close();}
     void initialize(const std::string& FN="")
     {
         if(!FN.empty())
             file_name=FN;
-        file.open(file_name,std::ios::out);
+        file.open(file_name,std::ios::in|std::ios::out);
         int tmp=0,initial=info_len*sizeof(int);
         file.write(reinterpret_cast<char *>(&initial),sizeof(int));
         for(int i=1;i<info_len;++i)
             file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
-        file.close();
     }
     void get_info(int &tmp,const int n)
     {
         if(n>info_len)
             return;
-        file.open(file_name);
         file.seekg((n-1)*static_cast<int>(sizeof(int)));
         file.read(reinterpret_cast<char*>(&tmp),sizeof(int));
-        file.close();
     }
     int get_info(const int n){int tmp;get_info(tmp,n);return tmp;}
     void write_info(int tmp,const int n)
     {
         if (n>info_len)
             return;
-        file.open(file_name);
         file.seekp((n-1)*static_cast<int>(sizeof(int)));
         file.write(reinterpret_cast<char*>(&tmp),sizeof(int));
-        file.close();
     }
     int write(T &t)
     {
         int index=get_info(1)+sizeof(T);
         write_info(index,1);
         index-=sizeof(T);
-        file.open(file_name);
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t),sizeof(T));
-        file.close();
         return index;
     }
     void update(T &t,const int index)
     {
-        file.open(file_name);
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t),sizeof(T));
-        file.close();
     }
     void read(T &t,const int index)
     {
-        file.open(file_name);
         file.seekg(index);
         file.read(reinterpret_cast<char*>(&t),sizeof(T));
-        file.close();
     }
     T read(const int index){T tmp;read(tmp,index);return tmp;}
 };
@@ -101,40 +90,36 @@ public:
 template<class T,int info_len=2>
 class DATA_rd
 {
+public:
     std::fstream file;
     std::string file_name;
-    public:
     DATA_rd()=default;
     explicit DATA_rd(std::string file_name):file_name(std::move(file_name)){}
+    ~DATA_rd(){file.close();}
     void initialize(const std::string& FN="")
     {
         if(!FN.empty())
             file_name=FN;
-        file.open(file_name,std::ios::out);
+        file.open(file_name,std::ios::in|std::ios::out);
         int tmp=0,initial=info_len*sizeof(int);
         file.write(reinterpret_cast<char *>(&initial),sizeof(int));
         for(int i=1;i<info_len;++i)
             file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
-        file.close();
     }
     void get_info(int &tmp,const int n)
     {
         if(n>info_len)
             return;
-        file.open(file_name);
         file.seekg((n-1)*static_cast<int>(sizeof(int)));
         file.read(reinterpret_cast<char*>(&tmp),sizeof(int));
-        file.close();
     }
     int get_info(const int n){int tmp;get_info(tmp,n);return tmp;}
     void write_info(int tmp,const int n)
     {
         if (n>info_len)
             return;
-        file.open(file_name);
         file.seekp((n-1)*static_cast<int>(sizeof(int)));
         file.write(reinterpret_cast<char*>(&tmp),sizeof(int));
-        file.close();
     }
     int write(list<T> &t)
     {
@@ -142,32 +127,26 @@ class DATA_rd
         index+=2*sizeof(int)+sizeof(std::pair<int,T>)*t.ms;
         write_info(index,1);
         index-=2*sizeof(int)+sizeof(std::pair<int,T>)*t.ms;
-        file.open(file_name);
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
         file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
-        file.close();
         return index;
     }
     void update(list<T> &t,const int index)
     {
-        file.open(file_name);
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
         file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
-        file.close();
     }
     void read(list<T> &t,const int index)
     {
-        file.open(file_name);
         file.seekg(index);
         file.read(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.read(reinterpret_cast<char*>(&t.ms),sizeof(int));
         t.val.resize(t.ms);
         file.read(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
-        file.close();
     }
     list<T> read(const int index){list<T> tmp;read(tmp,index);return tmp;}
 };
@@ -242,7 +221,11 @@ public:
         if(mode)
             node_file.initialize(s1),data_file.initialize(s2);
         else
-            node_file=MemoryRiver<Node<T>>(s1),data_file=DATA_rd<T0>(s2);
+        {
+            node_file.file_name=s1,data_file.file_name=s2;
+            node_file.file.open(node_file.file_name,std::ios::in|std::ios::out);
+            data_file.file.open(data_file.file_name,std::ios::in|std::ios::out);
+        }
     }
     void Insert(const T key,const T0 val)
     {
