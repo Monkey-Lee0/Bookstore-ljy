@@ -17,11 +17,13 @@ public:
     {
         if(!FN.empty())
             file_name=FN;
-        file.open(file_name,std::ios::in|std::ios::out);
+        file.open(file_name,std::ios::out);
         int tmp=0,initial=info_len*sizeof(int);
         file.write(reinterpret_cast<char *>(&initial),sizeof(int));
         for(int i=1;i<info_len;++i)
             file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
+        file.close();
+        file.open(file_name,std::ios::in|std::ios::out);
     }
     void get_info(int &tmp,const int n)
     {
@@ -100,11 +102,13 @@ public:
     {
         if(!FN.empty())
             file_name=FN;
-        file.open(file_name,std::ios::in|std::ios::out);
+        file.open(file_name,std::ios::out);
         int tmp=0,initial=info_len*sizeof(int);
         file.write(reinterpret_cast<char *>(&initial),sizeof(int));
         for(int i=1;i<info_len;++i)
             file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
+        file.close();
+        file.open(file_name,std::ios::in|std::ios::out);
     }
     void get_info(int &tmp,const int n)
     {
