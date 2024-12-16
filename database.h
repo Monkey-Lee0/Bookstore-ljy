@@ -10,7 +10,18 @@ class MemoryRiver
     std::fstream file;
     std::string file_name;
     int cache1[info_len+1]{};
-    std::unordered_map<std::string,int> cache2;
+    std::unordered_map<int,T> cache2;
+    void upload(const int index)
+    {
+        if(cache2.contains(index))
+            return ;
+        if(cache2.size()*sizeof(T)>1048576)
+            cache2.erase(cache2.begin());
+        T t;
+        file.seekg(index);
+        file.read(reinterpret_cast<char*>(&t),sizeof(T));
+        cache2.emplace(index,t);
+    }
 public:
     MemoryRiver()=default;
     explicit MemoryRiver(std::string file_name):file_name(std::move(file_name)){}
@@ -19,6 +30,11 @@ public:
         file.seekp(0);
         for(int i=1;i<=info_len;i++)
             file.write(reinterpret_cast<char*>(&cache1[i]),sizeof(int));
+        for(auto [index,t]:cache2)
+        {
+            file.seekp(index);
+            file.write(reinterpret_cast<char*>(&t),sizeof(T));
+        }
         file.close();
     }
     void initialize(const std::string& FN,const bool mode=true)
@@ -54,15 +70,10 @@ public:
     }
     void update(T &t,const int index)
     {
-        file.seekp(index);
-        file.write(reinterpret_cast<char*>(&t),sizeof(T));
+        upload(index);
+        cache2[index]=t;
     }
-    void read(T &t,const int index)
-    {
-        file.seekg(index);
-        file.read(reinterpret_cast<char*>(&t),sizeof(T));
-    }
-    T read(const int index){T tmp;read(tmp,index);return tmp;}
+    T read(const int index){upload(index);return cache2[index];}
 };
 
 constexpr int MAXN=16;
