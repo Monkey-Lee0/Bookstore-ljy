@@ -401,7 +401,7 @@ public:
                 std::vector<int> res;
                 for(auto t:S)
                     res.push_back(t);
-                if(S.size()!=X.size())
+                if(S.size()!=X.val.size())
                 {
                     X.cnt=0;
                     for(auto t:S)
