@@ -64,7 +64,7 @@ public:
         {
             file.open(file_name,std::ios::in|std::ios::out);
             for(int i=1;i<=info_len;i++)
-                file.read(reinterpret_cast<char *>(&cache1[i]),sizeof(int));
+                file.read(reinterpret_cast<char*>(&cache1[i]),sizeof(int));
         }
     }
     int get_info(const int n)const{return cache1[n];}
@@ -103,11 +103,11 @@ class list
 {
 public:
     std::vector<std::pair<bool,T>> val;
-    int cnt=0,ms=8;
+    int cnt=0,ms=4;
     list()=default;
     explicit list(const bool tim,const T& a)
     {
-        val.resize(8);
+        val.resize(4);
         val[cnt++]=std::make_pair(tim,a);
     }
 };
@@ -160,7 +160,8 @@ public:
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
-        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
+        for(int i=0;i<t.cnt;i++)
+            file.write(reinterpret_cast<char*>(&t.val[i]),sizeof(std::pair<int,T>));
         return index;
     }
     void update(list<T> &t,const int index)
@@ -168,7 +169,8 @@ public:
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
-        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
+        for(int i=0;i<t.cnt;i++)
+            file.write(reinterpret_cast<char*>(&t.val[i]),sizeof(std::pair<int,T>));
     }
     void read(list<T> &t,const int index)
     {
@@ -176,7 +178,8 @@ public:
         file.read(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.read(reinterpret_cast<char*>(&t.ms),sizeof(int));
         t.val.resize(t.ms);
-        file.read(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
+        for(int i=0;i<t.cnt;i++)
+            file.read(reinterpret_cast<char*>(&t.val[i]),sizeof(std::pair<int,T>));
     }
     list<T> read(const int index){list<T> tmp;read(tmp,index);return tmp;}
 };
