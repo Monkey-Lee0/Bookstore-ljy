@@ -85,7 +85,7 @@ public:
     T read(const int index){upload(index);return cache2[index].first;}
 };
 
-constexpr int MAXN=16;
+constexpr int MAXN=8;
 using name=char[65];
 
 template<class T>
@@ -128,7 +128,6 @@ public:
             file.write(reinterpret_cast<char*>(&cache[i]),sizeof(int));
         file.close();
     }
-
     void initialize(const std::string& FN,const bool mode=true)
     {
         file_name=FN;
