@@ -80,11 +80,11 @@ class list
 {
 public:
     std::vector<std::pair<bool,T>> val;
-    int cnt=0,ms=1;
+    int cnt=0,ms=4;
     list()=default;
     explicit list(const int tim,const T& a)
     {
-        val.resize(1);
+        val.resize(4);
         val[cnt++]=std::make_pair(tim,a);
     }
 };
@@ -401,10 +401,13 @@ public:
                 std::vector<int> res;
                 for(auto t:S)
                     res.push_back(t);
-                X.cnt=0;
-                for(auto t:S)
-                    X.val[X.cnt++]=std::make_pair(1,t);
-                data_file.update(X,tmp.son[i]);
+                if(S.size()!=X.size())
+                {
+                    X.cnt=0;
+                    for(auto t:S)
+                        X.val[X.cnt++]=std::make_pair(1,t);
+                    data_file.update(X,tmp.son[i]);
+                }
                 return res;
             }
             if(ok>0)
