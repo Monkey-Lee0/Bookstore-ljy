@@ -16,12 +16,12 @@ public:
     explicit MemoryRiver(std::string file_name):file_name(std::move(file_name)){}
     ~MemoryRiver()
     {
-        file.close();
         file.seekp(0);
         for(int i=1;i<=info_len;i++)
-            file.write(reinterpret_cast<char*>(cache1[i]),sizeof(int));
+            file.write(reinterpret_cast<char*>(&cache1[i]),sizeof(int));
+        file.close();
     }
-    void initialize(const std::string& FN,bool mode=true)
+    void initialize(const std::string& FN,const bool mode=true)
     {
         file_name=FN;
         if(mode)
@@ -39,21 +39,15 @@ public:
         {
             file.open(file_name,std::ios::in|std::ios::out);
             for(int i=1;i<=info_len;i++)
-                file.read(reinterpret_cast<char *>(&cache1),sizeof(int));
+                file.read(reinterpret_cast<char *>(&cache1[i]),sizeof(int));
         }
-    }
-    void get_info(int &tmp,const int n)
-    {
-        file.seekg((n-1)*static_cast<int>(sizeof(int)));
-        file.read(reinterpret_cast<char*>(&tmp),sizeof(int));
     }
     int get_info(const int n)const{return cache1[n];}
     void write_info(int tmp,const int n){cache1[n]=tmp;}
     int write(T &t)
     {
-        int index=get_info(1)+sizeof(T);
-        write_info(index,1);
-        index-=sizeof(T);
+        const int index=get_info(1);
+        write_info(index+sizeof(T),1);
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t),sizeof(T));
         return index;
