@@ -103,11 +103,11 @@ class list
 {
 public:
     std::vector<std::pair<bool,T>> val;
-    int cnt=0,ms=4;
+    int cnt=0,ms=8;
     list()=default;
     explicit list(const bool tim,const T& a)
     {
-        val.resize(4);
+        val.resize(8);
         val[cnt++]=std::make_pair(tim,a);
     }
 };
