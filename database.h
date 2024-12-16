@@ -112,42 +112,46 @@ public:
     }
 };
 
-template<class T,int info_len=2>
+template<class T,int info_len=1>
 class DATA_rd
 {
 public:
     std::fstream file;
     std::string file_name;
+    int cache[info_len+1]{};
     DATA_rd()=default;
     explicit DATA_rd(std::string file_name):file_name(std::move(file_name)){}
-    ~DATA_rd(){file.close();}
-    void initialize(const std::string& FN="")
+    ~DATA_rd()
     {
-        if(!FN.empty())
-            file_name=FN;
-        file.open(file_name,std::ios::out);
-        int tmp=0,initial=info_len*sizeof(int);
-        file.write(reinterpret_cast<char *>(&initial),sizeof(int));
-        for(int i=1;i<info_len;++i)
-            file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
+        file.seekp(0);
+        for(int i=1;i<=info_len;i++)
+            file.write(reinterpret_cast<char*>(&cache[i]),sizeof(int));
         file.close();
-        file.open(file_name,std::ios::in|std::ios::out);
     }
-    void get_info(int &tmp,const int n)
+
+    void initialize(const std::string& FN,const bool mode=true)
     {
-        if(n>info_len)
-            return;
-        file.seekg((n-1)*static_cast<int>(sizeof(int)));
-        file.read(reinterpret_cast<char*>(&tmp),sizeof(int));
+        file_name=FN;
+        if(mode)
+        {
+            file.open(file_name,std::ios::out);
+            int tmp=0,initial=info_len*sizeof(int);
+            file.write(reinterpret_cast<char *>(&initial),sizeof(int));
+            cache[1]=initial;
+            for(int i=1;i<info_len;++i)
+                file.write(reinterpret_cast<char *>(&tmp),sizeof(int)),cache[i+1]=0;
+            file.close();
+            file.open(file_name,std::ios::in|std::ios::out);
+        }
+        else
+        {
+            file.open(file_name,std::ios::in|std::ios::out);
+            for(int i=1;i<=info_len;i++)
+                file.read(reinterpret_cast<char *>(&cache[i]),sizeof(int));
+        }
     }
-    int get_info(const int n){int tmp;get_info(tmp,n);return tmp;}
-    void write_info(int tmp,const int n)
-    {
-        if (n>info_len)
-            return;
-        file.seekp((n-1)*static_cast<int>(sizeof(int)));
-        file.write(reinterpret_cast<char*>(&tmp),sizeof(int));
-    }
+    int get_info(const int n){return cache[n];}
+    void write_info(int tmp,const int n){cache[n]=tmp;}
     int write(list<T> &t)
     {
         int index=get_info(1);
@@ -245,14 +249,7 @@ class B_plus_Tree
 public:
     void initialize(const std::string& s1,const std::string &s2,const int mode=true)
     {
-        if(mode)
-            node_file.initialize(s1),data_file.initialize(s2);
-        else
-        {
-            node_file.initialize(s1,false);
-            data_file.file_name=s2;
-            data_file.file.open(data_file.file_name,std::ios::in|std::ios::out);
-        }
+        node_file.initialize(s1,mode),data_file.initialize(s2,mode);
     }
     void Insert(const T key,const T0 val)
     {
