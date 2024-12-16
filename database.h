@@ -79,7 +79,7 @@ template<class T>
 class list
 {
 public:
-    std::vector<std::pair<int,T>> val;
+    std::vector<std::pair<bool,T>> val;
     int cnt=0,ms=1;
     list()=default;
     explicit list(const int tim,const T& a)
@@ -385,9 +385,9 @@ public:
                 auto X=data_file.read(tmp.son[i]);
                 std::set<T0> S;
                 for(int j=0;j<X.cnt;j++)
-                    if(X.val[j].first<0&&S.contains(X.val[j].second))
+                    if(!X.val[j].first&&S.contains(X.val[j].second))
                         S.erase(X.val[j].second);
-                    else if(X.val[j].first>0)
+                    else if(X.val[j].first)
                         S.insert(X.val[j].second);
                 std::vector<int> res;
                 for(auto t:S)
@@ -435,14 +435,14 @@ public:
             {
                 if(list<T0> X=data_file.read(tmp.son[i]); X.cnt<X.ms)
                 {
-                    X.val[X.cnt++]=std::make_pair(-1,val);
+                    X.val[X.cnt++]=std::make_pair(0,val);
                     data_file.update(X,tmp.son[i]);
                 }
                 else
                 {
                     X.ms<<=1;
                     X.val.resize(X.ms);
-                    X.val[X.cnt++]=std::make_pair(-1,val);
+                    X.val[X.cnt++]=std::make_pair(0,val);
                     tmp.son[i]=data_file.write(X);
                     node_file.update(tmp,now);
                 }
