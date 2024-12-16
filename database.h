@@ -236,7 +236,7 @@ public:
         int now=node_file.get_info(3),depth=node_file.get_info(4);
         if(!depth)
         {
-            Node<T> a;list<T0> b(1,val);
+            Node<T> a;list<T0> b(true,val);
             strcpy(a.key[0],key);
             a.son[0]=data_file.write(b);
             node_file.write_info(node_file.write(a),3);
@@ -272,22 +272,31 @@ public:
             {
                 if(tmp.son[i]>=0)
                 {
-                    if(list<T0> X=data_file.read(tmp.son[i]); X.cnt<X.ms)
+                    int CNT,ms;
+                    data_file.file.seekg(tmp.son[i]);
+                    data_file.file.read(reinterpret_cast<char*>(&CNT),sizeof(int));
+                    data_file.file.read(reinterpret_cast<char*>(&ms),sizeof(int));
+                    if(CNT<ms)
                     {
-                        X.val[X.cnt++]=std::make_pair(1,val);
-                        data_file.update(X,tmp.son[i]);
+                        data_file.file.seekp(tmp.son[i]);
+                        CNT++;
+                        data_file.file.write(reinterpret_cast<char*>(&CNT),sizeof(int));
+                        data_file.file.seekp(tmp.son[i]+2*sizeof(int)+(CNT-1)*sizeof(std::pair<int,T0>));
+                        auto tmp0=std::make_pair(true,val);
+                        data_file.file.write(reinterpret_cast<char*>(&tmp0),sizeof(tmp0));
                     }
                     else
                     {
+                        list<T0> X=data_file.read(tmp.son[i]);
                         X.ms<<=1;
                         X.val.resize(X.ms);
-                        X.val[X.cnt++]=std::make_pair(1,val);
+                        X.val[X.cnt++]=std::make_pair(true,val);
                         tmp.son[i]=data_file.write(X);
                         node_file.update(tmp,now);
                     }
                     return ;
                 }
-                list<T0> X(1,val);
+                list<T0> X(true,val);
                 tmp.son[i]=data_file.write(X);
                 node_file.update(tmp,now);
                 return ;
@@ -300,7 +309,7 @@ public:
         }
         for(int i=cnt-1;i>=pos;--i)
             strcpy(tmp.key[i+1],tmp.key[i]),tmp.son[i+1]=tmp.son[i];
-        list<T0> X(1,val);
+        list<T0> X(true,val);
         strcpy(tmp.key[pos],key),tmp.son[pos]=data_file.write(X);
         if(cnt+1>=MAXN)
         {
@@ -433,19 +442,29 @@ public:
             const int ok=strcmp(tmp.key[i],key);
             if(ok==0&&tmp.son[i]>=0)
             {
-                if(list<T0> X=data_file.read(tmp.son[i]); X.cnt<X.ms)
+                int CNT,ms;
+                data_file.file.seekg(tmp.son[i]);
+                data_file.file.read(reinterpret_cast<char*>(&CNT),sizeof(int));
+                data_file.file.read(reinterpret_cast<char*>(&ms),sizeof(int));
+                if(CNT<ms)
                 {
-                    X.val[X.cnt++]=std::make_pair(0,val);
-                    data_file.update(X,tmp.son[i]);
+                    data_file.file.seekp(tmp.son[i]);
+                    CNT++;
+                    data_file.file.write(reinterpret_cast<char*>(&CNT),sizeof(int));
+                    data_file.file.seekp(tmp.son[i]+2*sizeof(int)+(CNT-1)*sizeof(std::pair<int,T0>));
+                    auto tmp0=std::make_pair(false,val);
+                    data_file.file.write(reinterpret_cast<char*>(&tmp0),sizeof(tmp0));
                 }
                 else
                 {
+                    list<T0> X=data_file.read(tmp.son[i]);
                     X.ms<<=1;
                     X.val.resize(X.ms);
-                    X.val[X.cnt++]=std::make_pair(0,val);
+                    X.val[X.cnt++]=std::make_pair(false,val);
                     tmp.son[i]=data_file.write(X);
                     node_file.update(tmp,now);
                 }
+                return ;
             }
             if(ok>=0)
                 return ;
