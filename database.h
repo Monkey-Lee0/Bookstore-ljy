@@ -160,7 +160,7 @@ public:
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
-        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>));
+        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
         return index;
     }
     void update(list<T> &t,const int index)
@@ -168,7 +168,7 @@ public:
         file.seekp(index);
         file.write(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.write(reinterpret_cast<char*>(&t.ms),sizeof(int));
-        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>));
+        file.write(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
     }
     void read(list<T> &t,const int index)
     {
@@ -176,7 +176,7 @@ public:
         file.read(reinterpret_cast<char*>(&t.cnt),sizeof(int));
         file.read(reinterpret_cast<char*>(&t.ms),sizeof(int));
         t.val.resize(t.ms);
-        file.read(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>));
+        file.read(reinterpret_cast<char*>(t.val.data()),sizeof(std::pair<int,T>)*t.ms);
     }
     list<T> read(const int index){list<T> tmp;read(tmp,index);return tmp;}
 };
