@@ -85,7 +85,7 @@ public:
     T read(const int index){upload(index);return cache2[index].first;}
 };
 
-constexpr int MAXN=8;
+constexpr int MAXN=32;
 using name=char[65];
 
 template<class T>
