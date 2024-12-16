@@ -4,30 +4,59 @@
 #include <fstream>
 #include <utility>
 
+
+constexpr int MAXN=24;
+using name=char[65];
+
+template<class T>
+class Node
+{
+public:
+    int fa=-1;
+    T key[MAXN]{};
+    int son[MAXN]{-1};
+    Node(){memset(son,-1,sizeof(son));}
+};
+
+template<class T>
+class list
+{
+public:
+    std::vector<std::pair<bool,T>> val;
+    int cnt=0,ms=4;
+    list()=default;
+    explicit list(const bool tim,const T& a)
+    {
+        val.resize(4);
+        val[cnt++]=std::make_pair(tim,a);
+    }
+};
+
 template<class T,int info_len=4>
 class MemoryRiver
 {
+public:
     std::fstream file;
     std::string file_name;
     int cache1[info_len+1]{};
-    std::unordered_map<int,std::pair<T,bool>> cache2;
+    std::unordered_map<int,std::pair<Node<T>,bool>> cache2;
     void upload(const int index)
     {
         if(cache2.contains(index))
             return ;
-        if(cache2.size()*sizeof(T)>1048576)
+        if(cache2.size()*sizeof(Node<T>)>1048576)
         {
             auto [index0,t0]=*cache2.begin();
             if(t0.second)
             {
                 file.seekp(index0);
-                file.write(reinterpret_cast<char*>(&t0.first),sizeof(T));
+                file.write(reinterpret_cast<char*>(&t0.first),sizeof(Node<T>));
             }
             cache2.erase(cache2.begin());
         }
-        T t;
+        Node<T> t;
         file.seekg(index);
-        file.read(reinterpret_cast<char*>(&t),sizeof(T));
+        file.read(reinterpret_cast<char*>(&t),sizeof(Node<T>));
         cache2.emplace(index,std::make_pair(t,false));
     }
 public:
@@ -42,7 +71,7 @@ public:
             if(t.second)
             {
                 file.seekp(index);
-                file.write(reinterpret_cast<char*>(&t.first),sizeof(T));
+                file.write(reinterpret_cast<char*>(&t.first),sizeof(Node<T>));
         }
         file.close();
     }
@@ -69,47 +98,20 @@ public:
     }
     int get_info(const int n)const{return cache1[n];}
     void write_info(int tmp,const int n){cache1[n]=tmp;}
-    int write(T &t)
+    int write(Node<T> &t)
     {
         const int index=get_info(1);
-        write_info(index+sizeof(T),1);
+        write_info(index+sizeof(Node<T>),1);
         file.seekp(index);
-        file.write(reinterpret_cast<char*>(&t),sizeof(T));
+        file.write(reinterpret_cast<char*>(&t),sizeof(Node<T>));
         return index;
     }
-    void update(T &t,const int index)
+    void update(Node<T> &t,const int index)
     {
         upload(index);
         cache2[index]=std::make_pair(t,true);
     }
-    T read(const int index){upload(index);return cache2[index].first;}
-};
-
-constexpr int MAXN=24;
-using name=char[65];
-
-template<class T>
-class Node
-{
-public:
-    T key[MAXN]{};
-    int son[MAXN]{-1};
-    int fa=-1;
-    Node(){memset(son,-1,sizeof(son));}
-};
-
-template<class T>
-class list
-{
-public:
-    std::vector<std::pair<bool,T>> val;
-    int cnt=0,ms=4;
-    list()=default;
-    explicit list(const bool tim,const T& a)
-    {
-        val.resize(4);
-        val[cnt++]=std::make_pair(tim,a);
-    }
+    Node<T> read(const int index){upload(index);return cache2[index].first;}
 };
 
 template<class T,int info_len=1>
@@ -193,8 +195,24 @@ int COUNT_OF(const Node<T> &a,bool op=false)
 template<class T,class T0>
 class B_plus_Tree
 {
-    MemoryRiver<Node<T>> node_file;
+    MemoryRiver<T> node_file;
     DATA_rd<T0> data_file;
+    int search_to_leaf(const T key)
+    {
+        int now=node_file.get_info(3),depth=node_file.get_info(4);
+        while(depth!=1)
+        {
+            --depth;
+            const auto tmp=node_file.read(now);
+            for(int i=1;i<=MAXN;i++)
+                if(i==MAXN||tmp.son[i]==-1||strcmp(tmp.key[i],key)>0)
+                {
+                    now=tmp.son[i-1];
+                    break;
+                }
+        }
+        return now;
+    }
     void split(const int &index,Node<T> left)
     {
         Node<T> right;
@@ -206,12 +224,20 @@ class B_plus_Tree
         right.son[0]=left.son[MAXN/2];left.son[MAXN/2]=-1;
         right.fa=left.fa;
         node_file.update(left,index);
-        const int index_r=node_file.write(right);
+        int index_r=node_file.write(right);
         for(int i=0;i<MAXN/2;i++)
         {
-            auto p=node_file.read(right.son[i]);
-            p.fa=index_r;
-            node_file.update(p,right.son[i]);
+            if(!node_file.cache2.contains(right.son[i]))
+            {
+                node_file.file.seekp(right.son[i]);
+                node_file.file.write(reinterpret_cast<char*>(&index_r),sizeof(int));
+            }
+            else
+            {
+                auto p=node_file.read(right.son[i]);
+                p.fa=index_r;
+                node_file.update(p,right.son[i]);
+            }
         }
         if(left.fa==-1)
         {
@@ -252,7 +278,7 @@ public:
     }
     void Insert(const T key,const T0 val)
     {
-        int now=node_file.get_info(3),depth=node_file.get_info(4);
+        int depth=node_file.get_info(4);
         if(!depth)
         {
             Node<T> a;list<T0> b(true,val);
@@ -263,24 +289,7 @@ public:
             node_file.write_info(depth,4);
             return ;
         }
-        while(depth!=1)
-        {
-            --depth;
-            const auto tmp=node_file.read(now);
-            for(int i=1;i<=MAXN;i++)
-            {
-                if(i==MAXN||tmp.son[i]==-1)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-                if(strcmp(tmp.key[i],key)>0)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-            }
-        }
+        int now=search_to_leaf(key);
         auto tmp=node_file.read(now);
         const auto cnt=COUNT_OF(tmp);
         int pos=cnt;
@@ -378,27 +387,9 @@ public:
     }
     std::vector<int> Find(const T key)
     {
-        int now=node_file.get_info(3),depth=node_file.get_info(4);
-        if(!depth)
+        if(!node_file.get_info(4))
             return {};
-        while(depth!=1)
-        {
-            --depth;
-            const auto tmp=node_file.read(now);
-            for(int i=1;i<=MAXN;i++)
-            {
-                if(i==MAXN||tmp.son[i]==-1)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-                if(strcmp(tmp.key[i],key)>0)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-            }
-        }
+        int now=search_to_leaf(key);
         auto tmp=node_file.read(now);
         const auto cnt=COUNT_OF(tmp);
         std::vector<T0> val;
@@ -435,27 +426,9 @@ public:
     }
     void Delete(const T key,const T0 val)
     {
-        int now=node_file.get_info(3),depth=node_file.get_info(4);
-        if(!depth)
+        if(!node_file.get_info(4))
             return ;
-        while(depth!=1)
-        {
-            --depth;
-            const auto tmp=node_file.read(now);
-            for(int i=1;i<=MAXN;i++)
-            {
-                if(i==MAXN||tmp.son[i]==-1)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-                if(strcmp(tmp.key[i],key)>0)
-                {
-                    now=tmp.son[i-1];
-                    break;
-                }
-            }
-        }
+        int now=search_to_leaf(key);
         auto tmp=node_file.read(now);
         const auto cnt=COUNT_OF(tmp);
         for(int i=0;i<cnt;i++)
