@@ -7,11 +7,11 @@
 template<class T,int info_len=4>
 class MemoryRiver
 {
-public:
     std::fstream file;
     std::string file_name;
     int cache1[info_len+1]{};
     std::unordered_map<std::string,int> cache2;
+public:
     MemoryRiver()=default;
     explicit MemoryRiver(std::string file_name):file_name(std::move(file_name)){}
     ~MemoryRiver()
@@ -21,11 +21,11 @@ public:
         for(int i=1;i<=info_len;i++)
             file.write(reinterpret_cast<char*>(cache1[i]),sizeof(int));
     }
-    void initialize(const std::string& FN="",bool mode=true)
+    void initialize(const std::string& FN,bool mode=true)
     {
+        file_name=FN;
         if(mode)
         {
-            file_name=FN;
             file.open(file_name,std::ios::out);
             int tmp=0,initial=info_len*sizeof(int);
             file.write(reinterpret_cast<char *>(&initial),sizeof(int));
@@ -235,8 +235,8 @@ public:
             node_file.initialize(s1),data_file.initialize(s2);
         else
         {
-            node_file.file_name=s1,data_file.file_name=s2;
-            node_file.file.open(node_file.file_name,std::ios::in|std::ios::out);
+            node_file.initialize(s1,false);
+            data_file.file_name=s2;
             data_file.file.open(data_file.file_name,std::ios::in|std::ios::out);
         }
     }
