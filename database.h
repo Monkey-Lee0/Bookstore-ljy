@@ -10,36 +10,45 @@ class MemoryRiver
 public:
     std::fstream file;
     std::string file_name;
+    int cache1[info_len+1]{};
+    std::unordered_map<std::string,int> cache2;
     MemoryRiver()=default;
     explicit MemoryRiver(std::string file_name):file_name(std::move(file_name)){}
-    ~MemoryRiver(){file.close();}
-    void initialize(const std::string& FN="")
+    ~MemoryRiver()
     {
-        if(!FN.empty())
-            file_name=FN;
-        file.open(file_name,std::ios::out);
-        int tmp=0,initial=info_len*sizeof(int);
-        file.write(reinterpret_cast<char *>(&initial),sizeof(int));
-        for(int i=1;i<info_len;++i)
-            file.write(reinterpret_cast<char *>(&tmp),sizeof(int));
         file.close();
-        file.open(file_name,std::ios::in|std::ios::out);
+        file.seekp(0);
+        for(int i=1;i<=info_len;i++)
+            file.write(reinterpret_cast<char*>(cache1[i]),sizeof(int));
+    }
+    void initialize(const std::string& FN="",bool mode=true)
+    {
+        if(mode)
+        {
+            file_name=FN;
+            file.open(file_name,std::ios::out);
+            int tmp=0,initial=info_len*sizeof(int);
+            file.write(reinterpret_cast<char *>(&initial),sizeof(int));
+            cache1[1]=initial;
+            for(int i=1;i<info_len;++i)
+                file.write(reinterpret_cast<char *>(&tmp),sizeof(int)),cache1[i+1]=0;
+            file.close();
+            file.open(file_name,std::ios::in|std::ios::out);
+        }
+        else
+        {
+            file.open(file_name,std::ios::in|std::ios::out);
+            for(int i=1;i<=info_len;i++)
+                file.read(reinterpret_cast<char *>(&cache1),sizeof(int));
+        }
     }
     void get_info(int &tmp,const int n)
     {
-        if(n>info_len)
-            return;
         file.seekg((n-1)*static_cast<int>(sizeof(int)));
         file.read(reinterpret_cast<char*>(&tmp),sizeof(int));
     }
-    int get_info(const int n){int tmp;get_info(tmp,n);return tmp;}
-    void write_info(int tmp,const int n)
-    {
-        if (n>info_len)
-            return;
-        file.seekp((n-1)*static_cast<int>(sizeof(int)));
-        file.write(reinterpret_cast<char*>(&tmp),sizeof(int));
-    }
+    int get_info(const int n)const{return cache1[n];}
+    void write_info(int tmp,const int n){cache1[n]=tmp;}
     int write(T &t)
     {
         int index=get_info(1)+sizeof(T);
@@ -80,11 +89,11 @@ class list
 {
 public:
     std::vector<std::pair<bool,T>> val;
-    int cnt=0,ms=8;
+    int cnt=0,ms=4;
     list()=default;
-    explicit list(const int tim,const T& a)
+    explicit list(const bool tim,const T& a)
     {
-        val.resize(8);
+        val.resize(4);
         val[cnt++]=std::make_pair(tim,a);
     }
 };
