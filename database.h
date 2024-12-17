@@ -59,7 +59,7 @@ private:
         }
         if(cache.contains(block))
             return ;
-        if(cache.size()*(CACHESIZE+5)>838860)
+        if(cache.size()>8192)
             download(cache.begin());
         std::string p;
         p.resize(CACHESIZE);
