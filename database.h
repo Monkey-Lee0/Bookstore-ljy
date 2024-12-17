@@ -95,7 +95,11 @@ private:
         const int bl=belonged_block(l),br=belonged_block(r-1);
         std::string total_str;
         for(int i=bl;i<=br;i+=CACHESIZE)
+        {
             total_str+=read_block(i);
+            if(br-bl>=4096)
+                download(i);
+        }
         return total_str.substr(l-bl,r-l);
     }
     void write_data(const int l,const int r,const std::string& str)// to write data to an interval
@@ -114,7 +118,11 @@ private:
                 tmp[i-bl]=str[i-l];
             write_block(bl,tmp);
             for(int i=bl+CACHESIZE;i<br;i+=CACHESIZE)
+            {
                 write_block(i,str.substr(i-l,CACHESIZE));
+                if(br-bl>=4096)
+                    download(i);
+            }
             tmp=read_block(br);
             for(int i=br;i<r;++i)
                 tmp[i-br]=str[i-l];
