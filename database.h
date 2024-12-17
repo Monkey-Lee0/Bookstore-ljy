@@ -5,7 +5,7 @@
 #include <utility>
 
 constexpr int MAXN=24;
-constexpr int CACHESIZE=256;
+constexpr int CACHESIZE=512;
 using name=char[65];
 
 template<class T>
@@ -78,7 +78,7 @@ private:
         }
         if(cache.contains(block))
             return cache_times[block]++,void();
-        if(cache.size()>4096)
+        if(cache.size()>1024)
             download();
         std::string p;
         p.resize(CACHESIZE);
