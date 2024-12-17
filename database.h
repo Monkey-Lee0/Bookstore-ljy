@@ -146,12 +146,8 @@ public:
         file.seekp(0);
         for(int i=0;i<info_len;i++)
             file.write(reinterpret_cast<char*>(&info[i]),sizeof(int));
-        for(auto& [index,t]:cache)
-            if(t.first)
-            {
-                file.seekp(index);
-                file.write(reinterpret_cast<char*>(&t.second),CACHESIZE);
-            }
+        while(!cache.empty())
+            download(cache.begin());
         file.close();
     }
 
