@@ -39,15 +39,16 @@ class DataInteractor
 private:
     std::fstream file;
     int info[info_len]{};
-    std::unordered_map<int,std::pair<bool,std::string>> cache;
-    void download(std::unordered_map<int,std::pair<bool,std::string>>::iterator p)// Erase block from cache
+    std::unordered_map<int,std::string> cache;
+    std::unordered_map<int,bool> cache_state;
+    void download(const int index)// Erase block from cache
     {
-        auto [fi,se]=*p;
-        cache.erase(p);
-        if(!se.first)
+        const int state=cache_state[index];cache_state.erase(index);
+        const auto data=cache[index];cache.erase(index);
+        if(!state)
             return ;
-        file.seekp(fi);
-        file.write(se.second.data(),CACHESIZE);
+        file.seekp(index);
+        file.write(data.data(),CACHESIZE);
     }
     void upload(const int block)// Push block to cache  (if overcrowded, delete the element earliest visited)
     {
@@ -59,13 +60,14 @@ private:
         }
         if(cache.contains(block))
             return ;
-        if(cache.size()>1024)
-            download(cache.begin());
+        if(cache.size()>4096)
+            download(cache.begin()->first);
         std::string p;
         p.resize(CACHESIZE);
         file.seekg(block);
         file.read(p.data(),CACHESIZE);
-        cache.emplace(block,std::make_pair(false,p));
+        cache.emplace(block,p);
+        cache_state.emplace(block,false);
     }
     void new_block(const int block)// create a block
     {
@@ -76,12 +78,13 @@ private:
     std::string read_block(const int block)// read a block
     {
         upload(block);
-        return cache[block].second;
+        return cache[block];
     }
     void write_block(const int block,const std::string& str)// write to a block
     {
         upload(block);
-        cache[block]=std::make_pair(true,str);
+        cache[block]=str;
+        cache_state[block]=true;
     }
     static int belonged_block(const int index)// to get which block the index is in
     {
@@ -147,7 +150,7 @@ public:
         for(int i=0;i<info_len;i++)
             file.write(reinterpret_cast<char*>(&info[i]),sizeof(int));
         while(!cache.empty())
-            download(cache.begin());
+            download(cache.begin()->first);
         file.close();
     }
 
