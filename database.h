@@ -78,7 +78,7 @@ private:
         }
         if(cache.contains(block))
             return cache_times[block]++,void();
-        if(cache.size()>2048)
+        if(cache.size()>4096)
             download();
         std::string p;
         p.resize(CACHESIZE);
