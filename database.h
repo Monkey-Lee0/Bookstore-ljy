@@ -5,7 +5,7 @@
 #include <utility>
 
 constexpr int MAXN=24;
-constexpr int CACHESIZE=64;
+constexpr int CACHESIZE=256;
 using name=char[65];
 
 template<class T>
@@ -41,10 +41,28 @@ private:
     int info[info_len]{};
     std::unordered_map<int,std::string> cache;
     std::unordered_map<int,bool> cache_state;
-    void download(const int index)// Erase block from cache
+    std::unordered_map<int,int> cache_times;
+    std::vector<int> cache_stack[10];
+    void download()// Erase block from cache
     {
+        int index=-1;
+        for(int i=0;i<=9&&index==-1;i++)
+            while(!cache_stack[i].empty())
+            {
+                if(!cache_times.contains(cache_stack[i].back()))
+                    exit(0);
+                const auto real=std::min(9,cache_times[cache_stack[i].back()]);
+                if(real!=i)
+                    cache_stack[real].push_back(cache_stack[i].back());
+                else
+                    index=cache_stack[i].back();
+                cache_stack[i].pop_back();
+                if(index!=-1)
+                    break;
+            }
         const int state=cache_state[index];cache_state.erase(index);
         const auto data=cache[index];cache.erase(index);
+        cache_times.erase(index);
         if(!state)
             return ;
         file.seekp(index);
@@ -59,15 +77,17 @@ private:
             file.write(a,block+CACHESIZE-info[0]);
         }
         if(cache.contains(block))
-            return ;
-        if(cache.size()>4096)
-            download(cache.begin()->first);
+            return cache_times[block]++,void();
+        if(cache.size()>2048)
+            download();
         std::string p;
         p.resize(CACHESIZE);
         file.seekg(block);
         file.read(p.data(),CACHESIZE);
         cache.emplace(block,p);
         cache_state.emplace(block,false);
+        cache_times[block]=0;
+        cache_stack[0].push_back(block);
     }
     void new_block(const int block)// create a block
     {
@@ -95,11 +115,7 @@ private:
         const int bl=belonged_block(l),br=belonged_block(r-1);
         std::string total_str;
         for(int i=bl;i<=br;i+=CACHESIZE)
-        {
             total_str+=read_block(i);
-            if(br-bl>=4096)
-                download(i);
-        }
         return total_str.substr(l-bl,r-l);
     }
     void write_data(const int l,const int r,const std::string& str)// to write data to an interval
@@ -118,11 +134,7 @@ private:
                 tmp[i-bl]=str[i-l];
             write_block(bl,tmp);
             for(int i=bl+CACHESIZE;i<br;i+=CACHESIZE)
-            {
                 write_block(i,str.substr(i-l,CACHESIZE));
-                if(br-bl>=4096)
-                    download(i);
-            }
             tmp=read_block(br);
             for(int i=br;i<r;++i)
                 tmp[i-br]=str[i-l];
@@ -158,7 +170,7 @@ public:
         for(int i=0;i<info_len;i++)
             file.write(reinterpret_cast<char*>(&info[i]),sizeof(int));
         while(!cache.empty())
-            download(cache.begin()->first);
+            download();
         file.close();
     }
 
