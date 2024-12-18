@@ -103,7 +103,7 @@ inline void Register(const std::string &UserID,const std::string &Password,const
 
 inline void Passwd(const std::string &UserID,const std::string &CurrentPassword,const std::string &NewPassword)
 {
-    if(!check_userid(UserID)||!check_userid(CurrentPassword)||!check_userid(NewPassword))
+    if(!check_userid(UserID)||!check_userid(CurrentPassword)||!check_userid(NewPassword)||!now_privilege())
         throw std::runtime_error("");
     const auto res=User_tree.Find(my_c_str<31>(UserID));
     if(res.empty())
