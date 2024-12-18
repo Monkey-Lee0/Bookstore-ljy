@@ -6,9 +6,21 @@
 
 inline DataInteractor<2> Finance_log("finance_log");
 
+inline bool check_count(const std::string &str)
+{
+    if(str.size()>10)
+        return false;
+    for(const auto t:str)
+        if(t<'0'||t>'9')
+            return false;
+    if(std::stol(str)>INT_MAX||std::stol(str)<0)
+        return false;
+    return true;
+}
+
 inline void Show_finance(const std::string &Count)
 {
-    if(now_privilege()!=7)
+    if(now_privilege()!=7||!check_count(Count))
         throw std::runtime_error("");
     const int mx=Finance_log.read_info(0);
     const int mx_siz=(mx-2*static_cast<int>(sizeof(int)))/static_cast<int>(sizeof(double));
@@ -16,7 +28,7 @@ inline void Show_finance(const std::string &Count)
     if(!Count.empty())
     {
         x=std::stoi(Count);
-        if(x>mx_siz||x<0)
+        if(x>mx_siz)
             throw std::runtime_error("");
     }
     if(!x)
