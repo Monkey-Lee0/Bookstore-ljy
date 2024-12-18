@@ -73,7 +73,7 @@ inline bool check_quantity(const std::string &str)
     for(const auto t:str)
         if(t<'0'||t>'9')
             return false;
-    if(std::stol(str)>INT_MAX||std::stol(str)<0)
+    if(std::stol(str)>INT_MAX||std::stol(str)<=0)
         return false;
     return true;
 }
