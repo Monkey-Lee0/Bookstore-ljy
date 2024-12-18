@@ -61,7 +61,7 @@ inline bool check_privilege(const std::string &str)
         return false;
     if(str[0]<'0'||str[0]>'7')
         return false;
-    if(str[0]!='1'&&str[0]!='3'&&str[0]!=7)
+    if(str[0]!='1'&&str[0]!='3'&&str[0]!='7')
         return false;
     return true;
 }
