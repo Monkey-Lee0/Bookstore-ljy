@@ -87,8 +87,7 @@ inline bool check_price(const std::string &str)
             return false;
     try
     {
-        auto x=std::stod(str);
-        if(x<0)
+        if(std::stod(str)<0)
             return false;
     }
     catch(...)
@@ -132,6 +131,8 @@ inline bool check_keyword(const std::string &str)
 
 inline void Show(const std::string &type,const std::string &info)
 {
+    if(!type.empty()&&info.empty())
+        throw std::runtime_error("");
     if(now_privilege()<1)
         throw std::runtime_error("");
     std::vector<int> res;
