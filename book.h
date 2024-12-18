@@ -78,7 +78,7 @@ inline bool check_quantity(const std::string &str)
     return true;
 }
 
-inline bool check_price(const std::string &str)
+inline bool check_price(const std::string &str,const bool chk=true)
 {
     if(str.size()>13)
         return false;
@@ -88,6 +88,8 @@ inline bool check_price(const std::string &str)
     try
     {
         if(std::stod(str)<0)
+            return false;
+        if(!chk&&std::stod(str)==0)
             return false;
     }
     catch(...)
@@ -280,7 +282,7 @@ inline void Modify(const std::string &type,const std::string &info)
 
 inline void Import(const std::string &Quantity,const std::string &TotalCost)
 {
-    if(!check_quantity(Quantity)||!check_price(TotalCost)||now_privilege()<3||login_stack.back().second==-1)
+    if(!check_quantity(Quantity)||!check_price(TotalCost,false)||now_privilege()<3||login_stack.back().second==-1)
         throw std::runtime_error("");
     const auto index=login_stack.back().second;
     auto now_book=Book_info.read_T<book>(index);
