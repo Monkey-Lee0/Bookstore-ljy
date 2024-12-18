@@ -105,7 +105,7 @@ inline void cmd(const std::string &str)
                         pos=i;
                         break;
                     }
-                if(pos==-1||pos==1||pos==)
+                if(pos==-1||pos==1)
                     throw std::runtime_error("");
                 Show(res[1].substr(1,pos-1),res[1].substr(pos+1));
             }
