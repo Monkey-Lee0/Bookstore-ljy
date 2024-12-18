@@ -1,12 +1,23 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <fstream>
-#include <utility>
+#include<fstream>
+#include<utility>
+#include<cstring>
+#include<vector>
+#include<iostream>
+#include<unordered_map>
+#include<set>
+#include<algorithm>
+#include<climits>
 
 constexpr int MAXN=24;
 constexpr int CACHESIZE=512;
-using name=char[65];
+using name60=char[61];
+using name30=char[31];
+using name20=char[21];
+using name10=char[11];
+using name13=char[14];
 
 template<class T>
 class Node
@@ -143,8 +154,11 @@ private:
     }
 public:
     // services for constructor and destructor
-    explicit DataInteractor(const std::string &FILE,const bool mode=true)
+    explicit DataInteractor(const std::string &FILE)
     {
+        std::ifstream tmp_file;tmp_file.open(FILE);
+        const int mode=!tmp_file.good();
+        tmp_file.close();
         if(mode)
         {
             file.open(FILE,std::ios::out);
@@ -250,7 +264,7 @@ int COUNT_OF(const Node<T> &a,bool op=false)
 }
 
 template<class T,class T0>
-class B_plus_Tree
+class B_Plus_Tree
 {
     DataInteractor<> file;
     int search_to_leaf(const T key)
@@ -316,7 +330,7 @@ class B_plus_Tree
         }
     }
 public:
-    explicit B_plus_Tree(const std::string &s1,const int mode=true):file(s1,mode){}
+    explicit B_Plus_Tree(const std::string &s1):file(s1){}
     void Insert(const T key,const T0 val)
     {
         if(int depth=file.read_info(3); !depth)
