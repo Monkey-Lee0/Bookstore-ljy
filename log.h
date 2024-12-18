@@ -15,14 +15,7 @@ inline void Show_finance(const std::string &Count)
     int x=-1;
     if(!Count.empty())
     {
-        try
-        {
-            x=std::stoi(Count);
-        }
-        catch(...)
-        {
-            return std::cout<<"Invalid",void();
-        }
+        x=std::stoi(Count);
         if(x>mx_siz||x<0)
             throw std::runtime_error("");
     }
