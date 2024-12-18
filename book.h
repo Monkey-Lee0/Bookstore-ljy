@@ -93,7 +93,7 @@ inline bool check_price(const std::string &str)
     }
     catch(...)
     {
-        return true;
+        return false;
     }
     return true;
 }
