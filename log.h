@@ -26,9 +26,13 @@ inline void Show_finance(const std::string &Count)
             return std::cout<<"Invalid",void();
         }
     }
-
-    if(x>mx_siz)
+    if(x>mx_siz||x<0)
         throw std::runtime_error("");
+    if(x==0)
+    {
+        std::cout<<std::endl;
+        return ;
+    }
     double plus=0,minus=0;
     for(int i=mx-x*static_cast<int>(sizeof(double));i<mx;i+=sizeof(double))
     {
