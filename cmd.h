@@ -97,21 +97,17 @@ inline void cmd(const std::string &str)
             else if(res.size()==2)
             {
                 if(res[1].front()!='-')
-                throw std::runtime_error("");
-                else
-                {
-                    int pos=-1;
-                    for(int i=0;i<res[1].size();i++)
-                        if(res[1][i]=='=')
-                        {
-                            pos=i;
-                            break;
-                        }
-                    if(pos==-1)
-                throw std::runtime_error("");
-                    else
-                        Show(res[1].substr(1,pos-1),res[1].substr(pos+1));
-                }
+                    throw std::runtime_error("");
+                int pos=-1;
+                for(int i=0;i<res[1].size();i++)
+                    if(res[1][i]=='=')
+                    {
+                        pos=i;
+                        break;
+                    }
+                if(pos==-1||pos==1)
+                    throw std::runtime_error("");
+                Show(res[1].substr(1,pos-1),res[1].substr(pos+1));
             }
             else
                 throw std::runtime_error("");
