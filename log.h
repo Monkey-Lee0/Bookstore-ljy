@@ -38,7 +38,7 @@ inline void Show_finance(const std::string &Count)
         else
             minus-=tmp;
     }
-    std::cout<<"+ "<<plus<<" - "<<minus<<std::endl;
+    std::cout<<std::fixed<<std::setprecision(2)<<"+ "<<plus<<" - "<<minus<<std::endl;
 }
 
 #endif
