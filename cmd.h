@@ -134,40 +134,38 @@ inline void cmd(const std::string &str)
         {
             if(res.size()==1||res.size()>6)
                 throw std::runtime_error("");
-            else
+            int pos[7],chk=1;
+            std::vector<std::string> S;
+            for(int i=1;i<res.size();i++)
             {
-                int pos[7],chk=1;
-                std::vector<std::string> S;
-                for(int i=1;i<res.size();i++)
-                {
-                    if(res[i].front()!='-')
-                        chk=0;
-                    else
-                    {
-                        pos[i]=-1;
-                        for(int j=0;j<res[1].size();j++)
-                            if(res[i][j]=='=')
-                            {
-                                pos[i]=j;
-                                break;
-                            }
-                        if(pos[i]==-1)
-                            chk=0;
-                        S.push_back(res[i].substr(1,pos[i]-1));
-                        if(S.back()!="ISBN"&&S.back()!="name"&&S.back()!="author"&&S.back()!="keyword"&&S.back()!="price")
-                            chk=0;
-                    }
-                }
-                std::ranges::sort(S);
-                for(int i=1;i<S.size();i++)
-                    if(S[i]==S[i-1])
-                        chk=0;
-                if(!chk)
-                throw std::runtime_error("");
+                if(res[i].front()!='-')
+                    chk=0;
                 else
-                    for(int i=1;i<res.size();i++)
-                        Modify(res[i].substr(1,pos[i]-1),res[i].substr(pos[i]+1));
+                {
+                    pos[i]=-1;
+                    for(int j=0;j<res[1].size();j++)
+                        if(res[i][j]=='=')
+                        {
+                            pos[i]=j;
+                            break;
+                        }
+                    if(pos[i]==-1)
+                        chk=0;
+                    S.push_back(res[i].substr(1,pos[i]-1));
+                    if(S.back()!="ISBN"&&S.back()!="name"&&S.back()!="author"&&S.back()!="keyword"&&S.back()!="price")
+                        chk=0;
+                }
             }
+            std::ranges::sort(S);
+            for(int i=1;i<S.size();i++)
+                if(S[i]==S[i-1])
+                    chk=0;
+            if(!chk)
+                throw std::runtime_error("");
+            for(int i=1;i<res.size();i++)
+                Modify_check_only(res[i].substr(1,pos[i]-1),res[i].substr(pos[i]+1));
+            for(int i=1;i<res.size();i++)
+                Modify(res[i].substr(1,pos[i]-1),res[i].substr(pos[i]+1));
         }
         else if(res[0]=="import")
         {

@@ -8,6 +8,8 @@ inline DataInteractor<2> Finance_log("finance_log");
 
 inline bool check_count(const std::string &str)
 {
+    if(str.empty())
+        return true;
     if(str.size()>10)
         return false;
     for(const auto t:str)

@@ -221,10 +221,50 @@ inline void Select(const std::string &ISBN)
         login_stack.back().second=res.back();
 }
 
+inline void Modify_check_only(const std::string &type,const std::string &info)
+{
+    if(now_privilege()<3||login_stack.back().second==-1)
+        throw std::runtime_error("");
+    const auto index=login_stack.back().second;
+    if(type=="ISBN")
+    {
+        if(!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
+            throw std::runtime_error("");
+    }
+    else if(type=="name")
+    {
+        if(info.size()<2||info.front()!='\"'||info.back()!='\"')
+            throw std::runtime_error("");
+        if(!check_bookname(info.substr(1,info.size()-2)))
+            throw std::runtime_error("");
+    }
+    else if(type=="author")
+    {
+        if(info.size()<2||info.front()!='\"'||info.back()!='\"')
+            throw std::runtime_error("");
+        if(!check_bookname(info.substr(1,info.size()-2)))
+            throw std::runtime_error("");
+    }
+    else if(type=="keyword")
+    {
+        if(info.size()<2||info.front()!='\"'||info.back()!='\"')
+            throw std::runtime_error("");
+        if(!check_keyword(info.substr(1,info.size()-2)))
+            throw std::runtime_error("");
+    }
+    else if(type=="price")
+    {
+        if(!check_price(info))
+            throw std::runtime_error("");
+    }
+    else
+        throw std::runtime_error("");
+}
+
 inline void Modify(const std::string &type,const std::string &info)
 {
     if(now_privilege()<3||login_stack.back().second==-1)
-            throw std::runtime_error("");
+        throw std::runtime_error("");
     const auto index=login_stack.back().second;
     auto now_book=Book_info.read_T<book>(index);
     if(type=="ISBN")
