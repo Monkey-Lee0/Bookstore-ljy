@@ -146,7 +146,7 @@ inline void Show(const std::string &type,const std::string &info)
     }
     else if(type=="name")
     {
-        if(info.size()<2||info.front()!='\"'||info.back()!='\"')
+        if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
             throw std::runtime_error("");
         if(!check_bookname(info.substr(1,info.size()-2)))
             throw std::runtime_error("");
@@ -154,7 +154,7 @@ inline void Show(const std::string &type,const std::string &info)
     }
     else if(type=="author")
     {
-        if(info.size()<2||info.front()!='\"'||info.back()!='\"')
+        if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
             throw std::runtime_error("");
         if(!check_bookname(info.substr(1,info.size()-2)))
             throw std::runtime_error("");
@@ -162,7 +162,7 @@ inline void Show(const std::string &type,const std::string &info)
     }
     else if(type=="keyword")
     {
-        if(info.size()<2||info.front()!='\"'||info.back()!='\"')
+        if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
             throw std::runtime_error("");
         if(!check_keyword(info.substr(1,info.size()-2))||
             split_keyword(info.substr(1,info.size()-2)).size()!=1)
