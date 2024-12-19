@@ -82,9 +82,16 @@ inline bool check_price(const std::string &str,const bool chk=true)
 {
     if(str.size()>13)
         return false;
-    for(int i=0;i<str.size();i++)
-        if(str[i]!='.'&&(str[i]<'0'||str[i]>'9'))
+    int cnt=0;
+    for(const char i:str)
+    {
+        if(i!='.'&&(i<'0'||i>'9'))
             return false;
+        if(i=='.')
+            cnt++;
+    }
+    if(cnt>1)
+        return false;
     try
     {
         if(std::stod(str)<0)
