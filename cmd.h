@@ -105,7 +105,7 @@ inline void cmd(const std::string &str)
                         pos=i;
                         break;
                     }
-                if(pos==-1||pos==1)
+                if(pos==-1||pos==1||pos+1==res[1].size())
                     throw std::runtime_error("");
                 Show(res[1].substr(1,pos-1),res[1].substr(pos+1));
             }
@@ -130,34 +130,29 @@ inline void cmd(const std::string &str)
         {
             if(res.size()==1||res.size()>6)
                 throw std::runtime_error("");
-            int pos[7],chk=1;
+            int pos[7];
             std::vector<std::string> S;
             for(int i=1;i<res.size();i++)
             {
                 if(res[i].front()!='-')
-                    chk=0;
-                else
-                {
-                    pos[i]=-1;
-                    for(int j=0;j<res[1].size();j++)
-                        if(res[i][j]=='=')
-                        {
-                            pos[i]=j;
-                            break;
-                        }
-                    if(pos[i]==-1)
-                        chk=0;
-                    S.push_back(res[i].substr(1,pos[i]-1));
-                    if(S.back()!="ISBN"&&S.back()!="name"&&S.back()!="author"&&S.back()!="keyword"&&S.back()!="price")
-                        chk=0;
-                }
+                    throw std::runtime_error("");
+                pos[i]=-1;
+                for(int j=0;j<res[i].size();j++)
+                    if(res[i][j]=='=')
+                    {
+                        pos[i]=j;
+                        break;
+                    }
+                if(pos[i]==-1||pos[i]==1||pos[i]+1==res[i].size())
+                    throw std::runtime_error("");
+                S.push_back(res[i].substr(1,pos[i]-1));
+                if(S.back()!="ISBN"&&S.back()!="name"&&S.back()!="author"&&S.back()!="keyword"&&S.back()!="price")
+                    throw std::runtime_error("");
             }
             std::ranges::sort(S);
             for(int i=1;i<S.size();i++)
                 if(S[i]==S[i-1])
-                    chk=0;
-            if(!chk)
-                throw std::runtime_error("");
+                    throw std::runtime_error("");
             for(int i=1;i<res.size();i++)
                 Modify_check_only(res[i].substr(1,pos[i]-1),res[i].substr(pos[i]+1));
             for(int i=1;i<res.size();i++)
