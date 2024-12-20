@@ -234,7 +234,7 @@ inline void Modify_check_only(const std::string &type,const std::string &info)
     const auto index=login_stack.back().second;
     if(type=="ISBN")
     {
-        if(!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
+        if(info.empty()||!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
             throw std::runtime_error("");
     }
     else if(type=="name")
