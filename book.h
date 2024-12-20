@@ -95,7 +95,7 @@ inline bool check_price(const std::string &str,const bool chk=true)
         return false;
     try
     {
-        if(std::stod(str)<=0)
+        if(std::stod(str)<0)
             return false;
         if(!chk&&std::stod(str)==0)
             return false;
