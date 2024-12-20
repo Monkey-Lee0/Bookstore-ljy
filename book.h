@@ -13,9 +13,9 @@ public:
     name20 ISBN{};
     name60 BookName{},Author{},Keyword{};
     double Price=0;
-    int Storage=0;
+    long long Storage=0;
     book(const std::string& isbn,const std::string& bookname,const std::string& author,const std::string& keyword
-        ,const double price,const int storage):Price(price),Storage(storage)
+        ,const double price,const long long storage):Price(price),Storage(storage)
     {
         strcpy(ISBN,isbn.c_str());
         strcpy(BookName,bookname.c_str());
