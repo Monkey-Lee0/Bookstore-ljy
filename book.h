@@ -221,7 +221,6 @@ inline void Select(const std::string &ISBN)
         const int index=Book_info.write_T<book>(new_book);
         ISBN_tree.Insert(my_c_str<21>(ISBN),index);
         login_stack.back().second=index;
-        ISBN_tree.Insert(my_c_str<21>(ISBN),index);
         Allbook_tree.Insert("all",index);
     }
     else
