@@ -8,15 +8,20 @@ inline std::vector<std::string> decompose(const std::string &str)
 {
     std::vector<std::string> S;
     std::string tmp;
+    int state=0;
     for(const char t:str)
-        if(t==' ')
+        if(!state&&t==' ')
         {
             if(!tmp.empty())
                 S.push_back(tmp);
             tmp.clear();
         }
         else
+        {
             tmp+=t;
+            if(t=='\"')
+                state^=1;
+        }
     if(!tmp.empty())
         S.push_back(tmp);
     return S;
@@ -167,11 +172,10 @@ inline void cmd(const std::string &str)
         {
             if(res.size()!=3)
                 throw std::runtime_error("");
-            else
-                Import(res[1],res[2]);
+            Import(res[1],res[2]);
         }
         else
-                throw std::runtime_error("");
+            throw std::runtime_error("");
     }
     catch(...)
     {

@@ -278,7 +278,7 @@ inline void Modify(const std::string &type,const std::string &info)
         if(!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
             throw std::runtime_error("");
         ISBN_tree.Delete(now_book.ISBN,index);
-        memcpy(now_book.ISBN,my_c_str<21>(info),sizeof(now_book.ISBN));
+        strcpy(now_book.ISBN,my_c_str<21>(info));
         ISBN_tree.Insert(my_c_str<21>(info),index);
     }
     else if(type=="name")
@@ -288,7 +288,7 @@ inline void Modify(const std::string &type,const std::string &info)
         if(!check_bookname(info.substr(1,info.size()-2)))
             throw std::runtime_error("");
         Bookname_tree.Delete(now_book.BookName,index);
-        memcpy(now_book.BookName,my_c_str<61>(info.substr(1,info.size()-2)),sizeof(now_book.BookName));
+        strcpy(now_book.BookName,my_c_str<61>(info.substr(1,info.size()-2)));
         Bookname_tree.Insert(my_c_str<61>(info.substr(1,info.size()-2)),index);
     }
     else if(type=="author")
@@ -298,7 +298,7 @@ inline void Modify(const std::string &type,const std::string &info)
         if(!check_bookname(info.substr(1,info.size()-2)))
             throw std::runtime_error("");
         Author_tree.Delete(now_book.Author,index);
-        memcpy(now_book.Author,my_c_str<61>(info.substr(1,info.size()-2)),sizeof(now_book.Author));
+        strcpy(now_book.Author,my_c_str<61>(info.substr(1,info.size()-2)));
         Author_tree.Insert(my_c_str<61>(info.substr(1,info.size()-2)),index);
     }
     else if(type=="keyword")
@@ -310,7 +310,7 @@ inline void Modify(const std::string &type,const std::string &info)
         auto tmp=split_keyword(std::string(now_book.Keyword));
         for(const auto& t:tmp)
             Keyword_tree.Delete(my_c_str<61>(t),index);
-        memcpy(now_book.Keyword,my_c_str<61>(info.substr(1,info.size()-2)),sizeof(now_book.Keyword));
+        strcpy(now_book.Keyword,my_c_str<61>(info.substr(1,info.size()-2)));
         tmp=split_keyword(info.substr(1,info.size()-2));
         for(const auto& t:tmp)
             Keyword_tree.Insert(my_c_str<61>(t),index);
