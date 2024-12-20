@@ -23,16 +23,15 @@ inline B_Plus_Tree<name30,int> User_tree("user_tree");
 
 inline DataInteractor<2> User_info("user_info");
 
-inline std::vector<std::pair<user,int>> login_stack;
+inline std::vector<std::pair<int,int>> login_stack;
 
-inline std::vector<int> index_stack;
 inline std::unordered_map<int,int> in_stack;
 
 inline int now_privilege()
 {
     if(login_stack.empty())
         return 0;
-    return login_stack.back().first.Privilege;
+    return User_info.read_T<user>(login_stack.back().first).Privilege;
 }
 
 inline bool check_userid(const std::string &str)
@@ -59,8 +58,6 @@ inline bool check_privilege(const std::string &str)
 {
     if(str.size()!=1)
         return false;
-    if(str[0]<'0'||str[0]>'7')
-        return false;
     if(str[0]!='1'&&str[0]!='3'&&str[0]!='7')
         return false;
     return true;
@@ -76,7 +73,7 @@ inline void Su(const std::string& UserID,const std::string &Password)
     const int index=res.back();
     if(const auto User=User_info.read_T<user>(index);
         (check_userid(Password)&&strcmp(User.Password,my_c_str<31>(Password))==0)||now_privilege()>User.Privilege)
-        login_stack.emplace_back(User,-1),in_stack[index]++,index_stack.push_back(index);
+        login_stack.emplace_back(index,-1),in_stack[index]++;
     else
         throw std::runtime_error("");
 }
@@ -85,8 +82,7 @@ inline void Logout()
 {
     if(login_stack.empty())
         throw std::runtime_error("");
-    in_stack[index_stack.back()]--;
-    index_stack.pop_back();
+    in_stack[login_stack.back().first]--;
     login_stack.pop_back();
 }
 
@@ -103,14 +99,14 @@ inline void Register(const std::string &UserID,const std::string &Password,const
 
 inline void Passwd(const std::string &UserID,const std::string &CurrentPassword,const std::string &NewPassword)
 {
-    if(!check_userid(UserID)||!check_userid(NewPassword)||! now_privilege())
+    if(!check_userid(UserID)||!check_userid(NewPassword)||!now_privilege())
         throw std::runtime_error("");
     const auto res=User_tree.Find(my_c_str<31>(UserID));
     if(res.empty())
         throw std::runtime_error("");
     const int index=res.back();
     if(auto User=User_info.read_T<user>(index);
-        now_privilege()==7||(!strcmp(User.Password,my_c_str<31>(CurrentPassword))&&check_userid(CurrentPassword)))
+        now_privilege()==7||(check_userid(CurrentPassword)&&!strcmp(User.Password,my_c_str<31>(CurrentPassword))))
     {
         strcpy(User.Password,my_c_str<31>(NewPassword));
         User_info.update_T<user>(User,index);

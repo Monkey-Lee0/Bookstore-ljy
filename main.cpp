@@ -4,7 +4,6 @@ using namespace std;
 
 int main()
 {
-    // freopen("my.ans","w",stdout);
     if(User_info.read_info(0)==2*sizeof(int))
     {
         user new_user("sjtu","root",7);
