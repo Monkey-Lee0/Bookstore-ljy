@@ -8,20 +8,15 @@ inline std::vector<std::string> decompose(const std::string &str)
 {
     std::vector<std::string> S;
     std::string tmp;
-    int state=0;
     for(const char t:str)
-        if(!state&&t==' ')
+        if(t==' ')
         {
             if(!tmp.empty())
                 S.push_back(tmp);
             tmp.clear();
         }
         else
-        {
             tmp+=t;
-            if(t=='\"')
-                state^=1;
-        }
     if(!tmp.empty())
         S.push_back(tmp);
     return S;

@@ -275,7 +275,7 @@ inline void Modify(const std::string &type,const std::string &info)
     auto now_book=Book_info.read_T<book>(index);
     if(type=="ISBN")
     {
-        if(!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
+        if(info.empty()||!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
             throw std::runtime_error("");
         ISBN_tree.Delete(now_book.ISBN,index);
         strcpy(now_book.ISBN,my_c_str<21>(info));
