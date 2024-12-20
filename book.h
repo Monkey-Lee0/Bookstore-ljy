@@ -42,7 +42,8 @@ inline std::vector<std::string> split_keyword(const std::string &str)
         else
             las+=t;
     }
-    S.push_back(las);
+    if(!las.empty())
+        S.push_back(las);
     return S;
 }
 
@@ -231,20 +232,12 @@ inline void Modify_check_only(const std::string &type,const std::string &info)
 {
     if(now_privilege()<3||login_stack.back().second==-1)
         throw std::runtime_error("");
-    const auto index=login_stack.back().second;
     if(type=="ISBN")
     {
         if(info.empty()||!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
             throw std::runtime_error("");
     }
-    else if(type=="name")
-    {
-        if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
-            throw std::runtime_error("");
-        if(!check_bookname(info.substr(1,info.size()-2)))
-            throw std::runtime_error("");
-    }
-    else if(type=="author")
+    else if(type=="name"||type=="author")
     {
         if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
             throw std::runtime_error("");
@@ -269,44 +262,28 @@ inline void Modify_check_only(const std::string &type,const std::string &info)
 
 inline void Modify(const std::string &type,const std::string &info)
 {
-    if(now_privilege()<3||login_stack.back().second==-1)
-        throw std::runtime_error("");
     const auto index=login_stack.back().second;
     auto now_book=Book_info.read_T<book>(index);
     if(type=="ISBN")
     {
-        if(info.empty()||!check_isbn(info)||!ISBN_tree.Find(my_c_str<21>(info)).empty())
-            throw std::runtime_error("");
         ISBN_tree.Delete(now_book.ISBN,index);
         strcpy(now_book.ISBN,my_c_str<21>(info));
         ISBN_tree.Insert(my_c_str<21>(info),index);
     }
     else if(type=="name")
     {
-        if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
-            throw std::runtime_error("");
-        if(!check_bookname(info.substr(1,info.size()-2)))
-            throw std::runtime_error("");
         Bookname_tree.Delete(now_book.BookName,index);
         strcpy(now_book.BookName,my_c_str<61>(info.substr(1,info.size()-2)));
         Bookname_tree.Insert(my_c_str<61>(info.substr(1,info.size()-2)),index);
     }
     else if(type=="author")
     {
-        if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
-            throw std::runtime_error("");
-        if(!check_bookname(info.substr(1,info.size()-2)))
-            throw std::runtime_error("");
         Author_tree.Delete(now_book.Author,index);
         strcpy(now_book.Author,my_c_str<61>(info.substr(1,info.size()-2)));
         Author_tree.Insert(my_c_str<61>(info.substr(1,info.size()-2)),index);
     }
     else if(type=="keyword")
     {
-        if(info.size()<=2||info.front()!='\"'||info.back()!='\"')
-            throw std::runtime_error("");
-        if(!check_keyword(info.substr(1,info.size()-2)))
-            throw std::runtime_error("");
         auto tmp=split_keyword(std::string(now_book.Keyword));
         for(const auto& t:tmp)
             Keyword_tree.Delete(my_c_str<61>(t),index);
@@ -316,13 +293,7 @@ inline void Modify(const std::string &type,const std::string &info)
             Keyword_tree.Insert(my_c_str<61>(t),index);
     }
     else if(type=="price")
-    {
-        if(!check_price(info))
-            throw std::runtime_error("");
         now_book.Price=std::stod(info);
-    }
-    else
-        throw std::runtime_error("");
     Book_info.update_T(now_book,index);
 }
 
